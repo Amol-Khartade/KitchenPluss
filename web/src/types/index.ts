@@ -1,7 +1,18 @@
 export type TicketStatus = 'QUEUE' | 'FIRING' | 'COMPLETED' | 'CANCELLED';
 
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  code: string;
+  address?: string | null;
+  phone?: string | null;
+  created_at?: string;
+}
+
 export interface Ticket {
   id: string;
+  organization_id?: string;
   recipe_id: string;
   recipe_name: string;
   station: string;
@@ -14,10 +25,12 @@ export interface Ticket {
 
 export interface Ingredient {
   id: string;
+  organization_id?: string;
   name: string;
   unit: string;
   current_stock: number;
   minimum_threshold: number;
+  cost_per_unit?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -31,6 +44,7 @@ export interface RecipeIngredient {
 
 export interface Recipe {
   id: string;
+  organization_id?: string;
   menu_item_name: string;
   price: number;
   station: string;
@@ -39,6 +53,7 @@ export interface Recipe {
 
 export interface PrepLog {
   id: string;
+  organization_id?: string;
   recipe_id: string;
   recipe_name: string;
   prep_date: string;
@@ -52,6 +67,7 @@ export interface PrepLog {
 
 export interface FoodCostSummary {
   recipe_id: string;
+  organization_id?: string;
   recipe_name: string;
   menu_price: number;
   total_prepped: number;
@@ -64,6 +80,7 @@ export interface FoodCostSummary {
 
 export interface SupplierOrder {
   id: string;
+  organization_id?: string;
   ingredient_id: string;
   ingredient_name: string;
   unit: string;
@@ -96,4 +113,22 @@ export interface AiPrepSheetResponse {
   recommendations: AiPrepItem[];
   model_used: string;
   summary_rationale: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  avatar_url?: string | null;
+  auth_provider: 'email' | 'google';
+  role: string;
+  organization_id: string;
+  organization_name?: string;
+  created_at?: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  organization: Organization;
+  token: string;
 }

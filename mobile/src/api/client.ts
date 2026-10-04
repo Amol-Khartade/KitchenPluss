@@ -3,18 +3,34 @@
 // ============================================================
 
 import Constants from "expo-constants";
+import { User, Organization, AuthResponse } from "../types";
 
 // Determine backend URL from app config or environment
 const extra = (Constants.expoConfig?.extra ?? {}) as { backendUrl?: string };
 export const API_BASE_URL = extra.backendUrl ?? "http://localhost:5000";
 
+let authToken: string | null = null;
+
+export function setAuthToken(token: string | null): void {
+  authToken = token;
+}
+
+export function getAuthToken(): string | null {
+  return authToken;
+}
+
 export async function apiFetch<T>(
   path: string,
   options?: RequestInit
 ): Promise<T> {
+  const authHeaders: Record<string, string> = authToken
+    ? { Authorization: `Bearer ${authToken}` }
+    : {};
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
       "Content-Type": "application/json",
+      ...authHeaders,
       ...(options?.headers ?? {}),
     },
     ...options,
@@ -22,11 +38,18 @@ export async function apiFetch<T>(
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(`API Error ${response.status}: ${text}`);
+    let parsed: any;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      parsed = null;
+    }
+    const message = parsed?.message || parsed?.error || `API Error ${response.status}: ${text}`;
+    throw new Error(message);
   }
 
   const json = await response.json();
-  if (json && typeof json === "object" && !("data" in json)) {
+  if (json && typeof json === "object" && !("data" in json) && !("users" in json) && !("organizations" in json) && !("user" in json)) {
     return { data: json } as T;
   }
   return json as T;
@@ -35,16 +58,16 @@ export async function apiFetch<T>(
 export const api = {
   tickets: {
     list: (status?: string) =>
-      apiFetch<{ data: import("../types").LiveTicket[] }>(
+      apiFetch<import("../types").LiveTicket[]>(
         `/api/tickets${status ? `?status=${status}` : ""}`
       ),
-    create: (body: { recipe_id: string; station: string }) =>
-      apiFetch<{ data: import("../types").LiveTicket }>("/api/tickets", {
+    create: (body: { recipe_id: string; station?: string; table_number?: number; notes?: string }) =>
+      apiFetch<import("../types").LiveTicket>("/api/tickets", {
         method: "POST",
         body: JSON.stringify(body),
       }),
     updateStatus: (id: string, status: string) =>
-      apiFetch<{ data: import("../types").LiveTicket }>(
+      apiFetch<import("../types").LiveTicket>(
         `/api/tickets/${id}/status`,
         { method: "PATCH", body: JSON.stringify({ status }) }
       ),
@@ -52,12 +75,17 @@ export const api = {
 
   recipes: {
     list: () =>
-      apiFetch<{ data: import("../types").Recipe[] }>("/api/recipes"),
+      apiFetch<import("../types").Recipe[]>("/api/recipes"),
   },
 
   ingredients: {
     list: () =>
-      apiFetch<{ data: import("../types").Ingredient[] }>("/api/ingredients"),
+      apiFetch<import("../types").Ingredient[]>("/api/ingredients"),
+    updateStock: (id: string, stock: number) =>
+      apiFetch<import("../types").Ingredient>(`/api/ingredients/${id}/stock`, {
+        method: "PATCH",
+        body: JSON.stringify({ current_stock: stock }),
+      }),
   },
 
   prepLogs: {
@@ -67,7 +95,7 @@ export const api = {
       waste_qty: number;
       notes?: string;
     }) =>
-      apiFetch<{ data: import("../types").PrepLog }>("/api/prep-logs", {
+      apiFetch<import("../types").PrepLog>("/api/prep-logs", {
         method: "POST",
         body: JSON.stringify(body),
       }),
@@ -91,6 +119,44 @@ export const api = {
 
   foodCost: {
     list: () =>
-      apiFetch<{ data: import("../types").FoodCostSummary[] }>("/api/food-cost"),
+      apiFetch<import("../types").FoodCostSummary[]>("/api/food-cost"),
+  },
+
+  users: {
+    list: () => apiFetch<{ users: User[] }>("/api/users"),
+    create: (body: { email: string; name: string; role: string; password?: string }) =>
+      apiFetch<{ user: User; temporaryPassword?: string }>("/api/users", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    updateRole: (id: string, role: string) =>
+      apiFetch<{ user: User }>(`/api/users/${id}/role`, {
+        method: "PATCH",
+        body: JSON.stringify({ role }),
+      }),
+  },
+
+  auth: {
+    getOrganizations: () =>
+      apiFetch<{ organizations: Organization[] }>("/api/auth/organizations"),
+    register: (body: {
+      email: string;
+      password: string;
+      name?: string;
+      role?: string;
+      organization_id?: string;
+      organization_name?: string;
+    }) =>
+      apiFetch<AuthResponse>("/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    login: (body: { email: string; password: string }) =>
+      apiFetch<AuthResponse>("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    me: () =>
+      apiFetch<{ user: User; organization: Organization }>("/api/auth/me"),
   },
 };

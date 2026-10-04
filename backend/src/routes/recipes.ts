@@ -1,8 +1,18 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import pool from '../db/pool.js';
+import { optionalAuth, AuthenticatedRequest } from '../middleware/auth.js';
 
 const router = Router();
+router.use(optionalAuth);
+
+function resolveOrgId(req: AuthenticatedRequest): string {
+  return (
+    req.user?.organizationId ||
+    (req.headers['x-organization-id'] as string) ||
+    '11111111-1111-1111-1111-111111111111'
+  );
+}
 
 // ------------------------------------------------------------------ //
 // Validation schemas
@@ -35,6 +45,7 @@ const PatchRecipeSchema = z.object({
 function formatRecipe(row: any) {
   return {
     id: row.id,
+    organization_id: row.organization_id,
     menu_item_name: row.menu_item_name,
     name: row.name ?? row.menu_item_name,
     station: row.station,
@@ -47,24 +58,27 @@ function formatRecipe(row: any) {
 }
 
 // ------------------------------------------------------------------ //
-// GET /api/recipes — list all, optional ?station= filter
+// GET /api/recipes — list all scoped to caller's organization
 // ------------------------------------------------------------------ //
-router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
+    const orgId = resolveOrgId(req);
     const station = req.query['station'] as string | undefined;
 
     const { rows } = station
       ? await pool.query(
-          `SELECT id, menu_item_name, name, station, price, prep_time_minutes, created_at, updated_at
+          `SELECT id, organization_id, menu_item_name, name, station, price, prep_time_minutes, created_at, updated_at
            FROM recipes
-           WHERE station = $1
+           WHERE organization_id = $1 AND station = $2
            ORDER BY menu_item_name ASC`,
-          [station]
+          [orgId, station]
         )
       : await pool.query(
-          `SELECT id, menu_item_name, name, station, price, prep_time_minutes, created_at, updated_at
+          `SELECT id, organization_id, menu_item_name, name, station, price, prep_time_minutes, created_at, updated_at
            FROM recipes
-           ORDER BY menu_item_name ASC`
+           WHERE organization_id = $1
+           ORDER BY menu_item_name ASC`,
+          [orgId]
         );
 
     res.json(rows.map(formatRecipe));
@@ -76,19 +90,20 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 // ------------------------------------------------------------------ //
 // GET /api/recipes/:id — get one, include recipe_ingredients
 // ------------------------------------------------------------------ //
-router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
+    const orgId = resolveOrgId(req);
     const { id } = req.params;
 
     const { rows: recipeRows } = await pool.query(
-      `SELECT id, menu_item_name, name, station, price, prep_time_minutes, created_at, updated_at
+      `SELECT id, organization_id, menu_item_name, name, station, price, prep_time_minutes, created_at, updated_at
        FROM recipes
-       WHERE id = $1`,
-      [id]
+       WHERE id = $1 AND organization_id = $2`,
+      [id, orgId]
     );
 
     if (recipeRows.length === 0) {
-      res.status(404).json({ error: 'Recipe not found' });
+      res.status(404).json({ error: 'Recipe not found in your organization' });
       return;
     }
 
@@ -123,9 +138,10 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 // ------------------------------------------------------------------ //
 // POST /api/recipes — create
 // ------------------------------------------------------------------ //
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const client = await pool.connect();
   try {
+    const orgId = resolveOrgId(req);
     const parsed = CreateRecipeSchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(422).json({ error: 'Validation failed', details: parsed.error.flatten() });
@@ -138,10 +154,10 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     await client.query('BEGIN');
 
     const { rows } = await client.query(
-      `INSERT INTO recipes (menu_item_name, station, price, prep_time_minutes)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO recipes (organization_id, menu_item_name, station, price, prep_time_minutes)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
-      [finalName, station, price, prep_time_minutes]
+      [orgId, finalName, station, price, prep_time_minutes]
     );
 
     const recipe = rows[0];
@@ -170,8 +186,9 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 // ------------------------------------------------------------------ //
 // PATCH /api/recipes/:id — update
 // ------------------------------------------------------------------ //
-router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.patch('/:id', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
+    const orgId = resolveOrgId(req);
     const { id } = req.params;
 
     const parsed = PatchRecipeSchema.safeParse(req.body);
@@ -182,7 +199,7 @@ router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => 
 
     const updates = parsed.data;
     const setClauses: string[] = [];
-    const values: unknown[] = [id];
+    const values: unknown[] = [id, orgId];
 
     const newName = updates.menu_item_name ?? updates.name;
     if (newName !== undefined) {
@@ -207,13 +224,13 @@ router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => 
     const { rows } = await pool.query(
       `UPDATE recipes
        SET ${setClauses.join(', ')}
-       WHERE id = $1
+       WHERE id = $1 AND organization_id = $2
        RETURNING *`,
       values
     );
 
     if (rows.length === 0) {
-      res.status(404).json({ error: 'Recipe not found' });
+      res.status(404).json({ error: 'Recipe not found in your organization' });
       return;
     }
 
@@ -226,14 +243,18 @@ router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => 
 // ------------------------------------------------------------------ //
 // DELETE /api/recipes/:id
 // ------------------------------------------------------------------ //
-router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.delete('/:id', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
+    const orgId = resolveOrgId(req);
     const { id } = req.params;
 
-    const { rowCount } = await pool.query(`DELETE FROM recipes WHERE id = $1`, [id]);
+    const { rowCount } = await pool.query(
+      `DELETE FROM recipes WHERE id = $1 AND organization_id = $2`,
+      [id, orgId]
+    );
 
     if (rowCount === 0) {
-      res.status(404).json({ error: 'Recipe not found' });
+      res.status(404).json({ error: 'Recipe not found in your organization' });
       return;
     }
 

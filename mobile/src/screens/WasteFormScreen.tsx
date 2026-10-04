@@ -17,7 +17,7 @@ import {
 import { z } from "zod";
 import { useRecipes } from "../hooks/useQueries";
 import { useLogWaste } from "../hooks/useQueries";
-import type { WasteFormEntry } from "../types";
+import type { WasteFormEntry, Recipe } from "../types";
 
 // ── Zod Schema ─────────────────────────────────────────────
 
@@ -57,7 +57,7 @@ export default function WasteFormScreen() {
   React.useEffect(() => {
     if (recipes && entries.length === 0) {
       setEntries(
-        recipes.map((r) => ({
+        recipes.map((r: Recipe) => ({
           recipe_id: r.id,
           recipe_name: r.name,
           prepped_qty: 0,
@@ -249,18 +249,18 @@ export default function WasteFormScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0F172A",
+    backgroundColor: "#070B14",
   },
   content: {
-    paddingHorizontal: 24,
-    paddingTop: 56,
+    paddingHorizontal: 16,
+    paddingTop: 16,
     paddingBottom: 40,
   },
   centered: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#0F172A",
+    backgroundColor: "#070B14",
     gap: 12,
   },
   loadingText: {
@@ -268,28 +268,33 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   title: {
-    color: "#F1F5F9",
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: 4,
+    color: "#F8FAFC",
+    fontSize: 20,
+    fontWeight: "900",
+    letterSpacing: -0.3,
+    marginBottom: 2,
   },
   subtitle: {
     color: "#94A3B8",
-    fontSize: 14,
-    marginBottom: 24,
+    fontSize: 12,
+    marginBottom: 20,
   },
   card: {
-    backgroundColor: "#1E293B",
-    borderRadius: 14,
+    backgroundColor: "rgba(18, 26, 44, 0.72)",
+    borderRadius: 18,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#334155",
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 3,
   },
   recipeName: {
-    color: "#F1F5F9",
-    fontSize: 16,
-    fontWeight: "600",
+    color: "#F8FAFC",
+    fontSize: 15,
+    fontWeight: "800",
     marginBottom: 12,
   },
   row: {
@@ -301,55 +306,63 @@ const styles = StyleSheet.create({
   },
   label: {
     color: "#94A3B8",
-    fontSize: 12,
+    fontSize: 11,
     marginBottom: 6,
-    fontWeight: "500",
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   input: {
-    backgroundColor: "#0F172A",
+    backgroundColor: "rgba(255, 255, 255, 0.04)",
     borderWidth: 1,
-    borderColor: "#334155",
-    borderRadius: 8,
+    borderColor: "rgba(255, 255, 255, 0.12)",
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    color: "#F1F5F9",
-    fontSize: 16,
-    fontWeight: "600",
+    color: "#F8FAFC",
+    fontSize: 15,
+    fontWeight: "700",
   },
   inputError: {
-    borderColor: "#EF4444",
+    borderColor: "rgba(239, 68, 68, 0.7)",
   },
   errorText: {
-    color: "#EF4444",
-    fontSize: 11,
+    color: "#FCA5A5",
+    fontSize: 10,
     marginTop: 4,
+    fontWeight: "600",
   },
   wastePercent: {
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 12,
+    fontWeight: "700",
     marginTop: 8,
   },
   notesInput: {
     marginTop: 10,
-    backgroundColor: "#0F172A",
+    backgroundColor: "rgba(255, 255, 255, 0.03)",
     borderWidth: 1,
-    borderColor: "#334155",
-    borderRadius: 8,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    color: "#94A3B8",
-    fontSize: 13,
-    minHeight: 56,
+    color: "#CBD5E1",
+    fontSize: 12,
+    minHeight: 52,
   },
   submitBtn: {
-    marginTop: 24,
+    marginTop: 20,
     borderRadius: 14,
-    paddingVertical: 16,
+    paddingVertical: 14,
     alignItems: "center",
+    backgroundColor: "#0284C7",
+    shadowColor: "#38BDF8",
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 4,
   },
   submitBtnText: {
     color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "700",
+    fontSize: 15,
+    fontWeight: "800",
   },
 });

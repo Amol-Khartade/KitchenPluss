@@ -1,16 +1,18 @@
 // ============================================================
 // KitchenPulse Mobile — Socket.IO Hook
-// Manages connection lifecycle and maps server events to store
+// Manages connection lifecycle and maps tenant events to store
 // ============================================================
 
 import { useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import { useKitchenStore } from "../store/useKitchenStore";
+import { useAuthStore } from "../store/useAuthStore";
 import { API_BASE_URL } from "../api/client";
 import type { LiveTicket, PrepOptimizationResult } from "../types";
 
 export function useSocket(): void {
   const socketRef = useRef<Socket | null>(null);
+  const { organization } = useAuthStore();
   const {
     setConnected,
     addTicket,
@@ -20,10 +22,13 @@ export function useSocket(): void {
   } = useKitchenStore();
 
   useEffect(() => {
+    const orgId = organization?.id;
+
     const socket = io(API_BASE_URL, {
-      transports: ["websocket"],
+      transports: ["websocket", "polling"],
       reconnectionAttempts: 10,
       reconnectionDelay: 2000,
+      query: orgId ? { orgId } : undefined,
     });
 
     socketRef.current = socket;
@@ -31,6 +36,9 @@ export function useSocket(): void {
     socket.on("connect", () => {
       console.log("[Socket] Connected:", socket.id);
       setConnected(true);
+      if (orgId) {
+        socket.emit("join:org", { organizationId: orgId });
+      }
     });
 
     socket.on("disconnect", (reason) => {
@@ -88,5 +96,5 @@ export function useSocket(): void {
       socket.disconnect();
       setConnected(false);
     };
-  }, []);
+  }, [organization?.id]);
 }

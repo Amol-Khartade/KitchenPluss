@@ -4,8 +4,36 @@
 
 export type TicketStatus = "QUEUE" | "FIRING" | "COMPLETED";
 
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  code: string;
+  address?: string | null;
+  phone?: string | null;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  avatar_url?: string | null;
+  auth_provider: 'email' | 'google';
+  role: string;
+  organization_id: string;
+  organization_name?: string;
+  created_at?: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  organization: Organization;
+  token: string;
+}
+
 export interface LiveTicket {
   id: string;
+  organization_id?: string;
   recipe_id: string;
   station: string;
   status: TicketStatus;
@@ -16,6 +44,7 @@ export interface LiveTicket {
 
 export interface Ingredient {
   id: string;
+  organization_id?: string;
   name: string;
   unit: string;
   current_stock: number;
@@ -26,6 +55,7 @@ export interface Ingredient {
 
 export interface Recipe {
   id: string;
+  organization_id?: string;
   name: string;
   station: string;
   sale_price: number;
@@ -34,6 +64,7 @@ export interface Recipe {
 
 export interface PrepLog {
   id: string;
+  organization_id?: string;
   recipe_id: string;
   prep_date: string;
   prepped_qty: number;
@@ -44,6 +75,7 @@ export interface PrepLog {
 
 export interface FoodCostSummary {
   recipe_id: string;
+  organization_id?: string;
   recipe_name: string;
   sale_price: number;
   total_prepped: number;
