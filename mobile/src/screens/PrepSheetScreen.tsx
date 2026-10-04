@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { useKitchenStore } from "../store/useKitchenStore";
 import { usePrepOptimization } from "../hooks/useQueries";
+import type { PrepSuggestion } from "../types";
 
 export default function PrepSheetScreen() {
   const { prepSheet: wsSheet } = useKitchenStore();
@@ -93,7 +94,7 @@ export default function PrepSheetScreen() {
       {/* Suggestions */}
       <Text style={styles.sectionTitle}>Recipe Prep Targets</Text>
 
-      {sheet.suggestions.map((suggestion, idx) => {
+      {sheet.suggestions.map((suggestion: PrepSuggestion, idx: number) => {
         const isHighWaste = suggestion.waste_pct > 20;
         return (
           <View

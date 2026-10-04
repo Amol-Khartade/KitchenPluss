@@ -12,6 +12,9 @@ import { createTicketsRouter } from './routes/tickets.js';
 import foodCostRouter from './routes/foodCost.js';
 import supplierOrdersRouter from './routes/supplierOrders.js';
 import { createAiRoutes } from './ai-orchestrator/routes.js';
+import authRouter from './routes/auth.js';
+import usersRouter from './routes/users.js';
+import { initDb } from './db/initDb.js';
 
 // ------------------------------------------------------------------ //
 // App + HTTP server
@@ -59,6 +62,8 @@ app.use('/api/tickets', createTicketsRouter(io));
 app.use('/api/food-cost', foodCostRouter);
 app.use('/api/supplier-orders', supplierOrdersRouter);
 app.use('/api/ai', createAiRoutes(io));
+app.use('/api/auth', authRouter);
+app.use('/api/users', usersRouter);
 
 // ------------------------------------------------------------------ //
 // Global error handler
@@ -75,7 +80,8 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 
 const PORT = Number(process.env['PORT']) || 5000;
 
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, async () => {
+  await initDb();
   const dbUrl = process.env['DATABASE_URL'] ?? '(not set)';
   // Mask the password portion of the connection string for safe logging
   const maskedDb = dbUrl.replace(/:\/\/([^:]+):([^@]+)@/, '://$1:****@');

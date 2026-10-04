@@ -1,4 +1,4 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { Server } from 'socket.io';
 import pool from '../db/pool.js';
@@ -8,6 +8,7 @@ import {
   emitStockAlert,
   emitFoodCostUpdated,
 } from '../sockets/index.js';
+import { optionalAuth, AuthenticatedRequest } from '../middleware/auth.js';
 
 // ------------------------------------------------------------------ //
 // Validation schemas
@@ -30,6 +31,7 @@ const PatchTicketStatusSchema = z.object({
 function formatTicket(row: any) {
   return {
     id: row.id,
+    organization_id: row.organization_id,
     recipe_id: row.recipe_id,
     recipe_name: row.recipe_name ?? row.menu_item_name,
     station: row.station,
@@ -41,17 +43,27 @@ function formatTicket(row: any) {
   };
 }
 
+function resolveOrgId(req: AuthenticatedRequest): string {
+  return (
+    req.user?.organizationId ||
+    (req.headers['x-organization-id'] as string) ||
+    '11111111-1111-1111-1111-111111111111'
+  );
+}
+
 // ------------------------------------------------------------------ //
 // Factory: returns a configured router bound to the io instance
 // ------------------------------------------------------------------ //
 export function createTicketsRouter(io: Server): Router {
   const router = Router();
+  router.use(optionalAuth);
 
   // ---------------------------------------------------------------- //
-  // GET /api/tickets — list, optional ?status= filter
+  // GET /api/tickets — list scoped to caller's organization
   // ---------------------------------------------------------------- //
-  router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+  router.get('/', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
+      const orgId = resolveOrgId(req);
       const status = req.query['status'] as string | undefined;
 
       if (status !== undefined && !TICKET_STATUSES.includes(status as TicketStatus)) {
@@ -64,6 +76,7 @@ export function createTicketsRouter(io: Server): Router {
       const { rows } = status
         ? await pool.query(
             `SELECT lt.id,
+                    lt.organization_id,
                     lt.recipe_id,
                     r.menu_item_name AS recipe_name,
                     COALESCE(lt.station, r.station) AS station,
@@ -74,12 +87,13 @@ export function createTicketsRouter(io: Server): Router {
                     lt.completed_at
              FROM live_tickets lt
              JOIN recipes r ON r.id = lt.recipe_id
-             WHERE lt.status = $1
+             WHERE lt.organization_id = $1 AND lt.status = $2
              ORDER BY lt.created_at ASC`,
-            [status]
+            [orgId, status]
           )
         : await pool.query(
             `SELECT lt.id,
+                    lt.organization_id,
                     lt.recipe_id,
                     r.menu_item_name AS recipe_name,
                     COALESCE(lt.station, r.station) AS station,
@@ -90,7 +104,9 @@ export function createTicketsRouter(io: Server): Router {
                     lt.completed_at
              FROM live_tickets lt
              JOIN recipes r ON r.id = lt.recipe_id
-             ORDER BY lt.created_at ASC`
+             WHERE lt.organization_id = $1
+             ORDER BY lt.created_at ASC`,
+            [orgId]
           );
 
       res.json(rows.map(formatTicket));
@@ -100,10 +116,11 @@ export function createTicketsRouter(io: Server): Router {
   });
 
   // ---------------------------------------------------------------- //
-  // POST /api/tickets — create and emit socket event
+  // POST /api/tickets — create and emit socket event to organization
   // ---------------------------------------------------------------- //
-  router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+  router.post('/', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
+      const orgId = resolveOrgId(req);
       const parsed = CreateTicketSchema.safeParse(req.body);
       if (!parsed.success) {
         res.status(422).json({ error: 'Validation failed', details: parsed.error.flatten() });
@@ -112,23 +129,23 @@ export function createTicketsRouter(io: Server): Router {
 
       const { recipe_id, station, table_number, notes } = parsed.data;
 
-      // Verify recipe exists
+      // Verify recipe exists in this organization or globally
       const { rows: recipeCheck } = await pool.query(
-        `SELECT id, menu_item_name, station FROM recipes WHERE id = $1`,
-        [recipe_id]
+        `SELECT id, menu_item_name, station FROM recipes WHERE id = $1 AND (organization_id = $2 OR organization_id IS NULL)`,
+        [recipe_id, orgId]
       );
       if (recipeCheck.length === 0) {
-        res.status(404).json({ error: 'Recipe not found' });
+        res.status(404).json({ error: 'Recipe not found in this organization' });
         return;
       }
 
       const finalStation = station || recipeCheck[0].station || 'Main Kitchen';
 
       const { rows } = await pool.query(
-        `INSERT INTO live_tickets (recipe_id, station, table_number, notes, status)
-         VALUES ($1, $2, $3, $4, 'QUEUE')
+        `INSERT INTO live_tickets (organization_id, recipe_id, station, table_number, notes, status)
+         VALUES ($1, $2, $3, $4, $5, 'QUEUE')
          RETURNING *`,
-        [recipe_id, finalStation, table_number ?? 1, notes ?? null]
+        [orgId, recipe_id, finalStation, table_number ?? 1, notes ?? null]
       );
 
       const ticket = {
@@ -137,9 +154,8 @@ export function createTicketsRouter(io: Server): Router {
         station: finalStation,
       };
 
-      // Emit both naming conventions
-      emitTicketCreated(io, ticket as any);
-      io.emit('new_ticket', ticket);
+      // Emit scoped to organization room
+      emitTicketCreated(io, ticket as any, orgId);
 
       res.status(201).json(ticket);
     } catch (err) {
@@ -150,9 +166,10 @@ export function createTicketsRouter(io: Server): Router {
   // ---------------------------------------------------------------- //
   // PATCH /api/tickets/:id/status — update status, deduct stock on COMPLETED
   // ---------------------------------------------------------------- //
-  router.patch('/:id/status', async (req: Request, res: Response, next: NextFunction) => {
+  router.patch('/:id/status', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const client = await pool.connect();
     try {
+      const orgId = resolveOrgId(req);
       const { id } = req.params;
 
       const parsed = PatchTicketStatusSchema.safeParse(req.body);
@@ -165,20 +182,20 @@ export function createTicketsRouter(io: Server): Router {
 
       await client.query('BEGIN');
 
-      // Fetch current ticket + recipe details
+      // Fetch current ticket + recipe details scoped to org
       const { rows: ticketRows } = await client.query(
-        `SELECT lt.id, lt.recipe_id, lt.status, lt.station, lt.table_number, lt.notes, lt.created_at,
+        `SELECT lt.id, lt.organization_id, lt.recipe_id, lt.status, lt.station, lt.table_number, lt.notes, lt.created_at,
                 r.menu_item_name AS recipe_name, r.station AS recipe_station
          FROM live_tickets lt
          JOIN recipes r ON r.id = lt.recipe_id
-         WHERE lt.id = $1
+         WHERE lt.id = $1 AND lt.organization_id = $2
          FOR UPDATE`,
-        [id]
+        [id, orgId]
       );
 
       if (ticketRows.length === 0) {
         await client.query('ROLLBACK');
-        res.status(404).json({ error: 'Ticket not found' });
+        res.status(404).json({ error: 'Ticket not found in your organization' });
         return;
       }
 
@@ -189,9 +206,9 @@ export function createTicketsRouter(io: Server): Router {
       const { rows: updated } = await client.query(
         `UPDATE live_tickets
          SET status = $1 ${completedClause}
-         WHERE id = $2
+         WHERE id = $2 AND organization_id = $3
          RETURNING *`,
-        [status, id]
+        [status, id, orgId]
       );
 
       // When COMPLETED: deduct ingredients from current_stock and check thresholds
@@ -202,8 +219,8 @@ export function createTicketsRouter(io: Server): Router {
           `SELECT ri.ingredient_id, ri.quantity_required, i.name, i.minimum_threshold
            FROM recipe_ingredients ri
            JOIN ingredients i ON i.id = ri.ingredient_id
-           WHERE ri.recipe_id = $1`,
-          [currentTicket.recipe_id]
+           WHERE ri.recipe_id = $1 AND i.organization_id = $2`,
+          [currentTicket.recipe_id, orgId]
         );
 
         for (const ing of ingredients) {
@@ -211,9 +228,9 @@ export function createTicketsRouter(io: Server): Router {
             `UPDATE ingredients
              SET current_stock = GREATEST(current_stock - $1, 0),
                  updated_at = NOW()
-             WHERE id = $2
+             WHERE id = $2 AND organization_id = $3
              RETURNING id, name, current_stock, minimum_threshold`,
-            [ing.quantity_required, ing.ingredient_id]
+            [ing.quantity_required, ing.ingredient_id, orgId]
           );
 
           const updatedIng = stockRows[0];
@@ -236,26 +253,29 @@ export function createTicketsRouter(io: Server): Router {
         station: currentTicket.station || currentTicket.recipe_station,
       };
 
-      // Emit both ticket update events
-      emitTicketUpdated(io, result as any);
-      io.emit('update_ticket_status', result);
+      // Emit ticket updated to organization room
+      emitTicketUpdated(io, result as any, orgId);
 
-      // Fire stock alerts after commit
+      // Fire stock alerts to organization room
       for (const alert of stockAlerts) {
-        emitStockAlert(io, {
-          ingredient_id: alert.ingredient_id as any,
-          name: alert.name,
-          stock_qty: alert.current_stock,
-          threshold_qty: alert.minimum_threshold,
-        });
-        io.emit('stock_alert', alert);
+        emitStockAlert(
+          io,
+          {
+            organization_id: orgId,
+            ingredient_id: alert.ingredient_id as any,
+            name: alert.name,
+            stock_qty: alert.current_stock,
+            threshold_qty: alert.minimum_threshold,
+          },
+          orgId
+        );
       }
 
       // If completed, refresh food cost view asynchronously
       if (status === 'COMPLETED') {
         pool.query('REFRESH MATERIALIZED VIEW mv_food_cost_summary')
           .then(() => {
-            emitFoodCostUpdated(io, { refreshed_at: new Date() });
+            emitFoodCostUpdated(io, { organization_id: orgId, refreshed_at: new Date() }, orgId);
           })
           .catch(() => {});
       }

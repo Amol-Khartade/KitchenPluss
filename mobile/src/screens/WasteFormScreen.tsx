@@ -17,7 +17,7 @@ import {
 import { z } from "zod";
 import { useRecipes } from "../hooks/useQueries";
 import { useLogWaste } from "../hooks/useQueries";
-import type { WasteFormEntry } from "../types";
+import type { WasteFormEntry, Recipe } from "../types";
 
 // ── Zod Schema ─────────────────────────────────────────────
 
@@ -57,7 +57,7 @@ export default function WasteFormScreen() {
   React.useEffect(() => {
     if (recipes && entries.length === 0) {
       setEntries(
-        recipes.map((r) => ({
+        recipes.map((r: Recipe) => ({
           recipe_id: r.id,
           recipe_name: r.name,
           prepped_qty: 0,

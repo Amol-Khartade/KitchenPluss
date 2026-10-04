@@ -7,11 +7,20 @@ let socketInstance: Socket | null = null;
 
 export function getSocket(): Socket {
   if (!socketInstance) {
+    const orgStored = typeof window !== 'undefined' ? localStorage.getItem('kitchenpulse_org') : null;
+    let orgId = '';
+    try {
+      if (orgStored) orgId = JSON.parse(orgStored)?.id || '';
+    } catch {
+      orgId = '';
+    }
+
     socketInstance = io(window.location.origin, {
       path: '/socket.io',
       transports: ['websocket', 'polling'],
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
+      query: orgId ? { orgId } : undefined,
     });
   }
   return socketInstance;
@@ -28,6 +37,18 @@ export function useSocket() {
 
     function onConnect() {
       setIsConnected(true);
+      // Ensure we join the current organization room
+      try {
+        const storedOrg = localStorage.getItem('kitchenpulse_org');
+        if (storedOrg) {
+          const org = JSON.parse(storedOrg);
+          if (org?.id) {
+            socket.emit('join:org', { organizationId: org.id });
+          }
+        }
+      } catch {
+        // Ignored
+      }
     }
 
     function onDisconnect() {
@@ -112,6 +133,7 @@ export function useSocket() {
 
     if (socket.connected) {
       setIsConnected(true);
+      onConnect();
     }
 
     return () => {

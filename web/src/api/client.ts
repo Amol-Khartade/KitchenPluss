@@ -7,15 +7,22 @@ import {
   FoodCostSummary,
   SupplierOrder,
   AiPrepSheetResponse,
+  User,
+  Organization,
+  AuthResponse,
 } from '../types/index.js';
 
 const API_BASE = '/api';
 
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE}${endpoint}`;
+  const token = typeof window !== 'undefined' ? localStorage.getItem('kitchenpulse_token') : null;
+  const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+
   const response = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',
+      ...authHeaders,
       ...options?.headers,
     },
     ...options,
@@ -52,6 +59,11 @@ export const ingredientsApi = {
     request<Ingredient>(`/ingredients/${id}/stock`, {
       method: 'PATCH',
       body: JSON.stringify({ current_stock }),
+    }),
+  updateDetails: (id: string, data: Partial<Ingredient>) =>
+    request<Ingredient>(`/ingredients/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
     }),
 };
 
@@ -104,4 +116,61 @@ export const aiApi = {
     request<{ success: boolean; data: any }>('/ai/inventory-alert', {
       method: 'POST',
     }),
+};
+
+// User & Team Management API (Admin & Owner)
+export const usersApi = {
+  getAll: () => request<{ users: User[] }>('/users'),
+  create: (data: { email: string; name: string; role: string; password?: string }) =>
+    request<{ user: User; temporaryPassword?: string }>('/users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  updateRole: (id: string, role: string) =>
+    request<{ user: User }>(`/users/${id}/role`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role }),
+    }),
+  delete: (id: string) =>
+    request<{ success: boolean; message: string }>(`/users/${id}`, {
+      method: 'DELETE',
+    }),
+};
+
+// Authentication API
+export const authApi = {
+  getOrganizations: () =>
+    request<{ organizations: Organization[] }>('/auth/organizations'),
+  register: (data: {
+    email: string;
+    password: string;
+    name?: string;
+    role?: string;
+    organization_id?: string;
+    organization_name?: string;
+  }) =>
+    request<AuthResponse>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  login: (data: { email: string; password: string }) =>
+    request<AuthResponse>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  loginWithGoogle: (data: {
+    credential?: string;
+    email?: string;
+    name?: string;
+    picture?: string;
+    googleId?: string;
+    organization_id?: string;
+    organization_name?: string;
+    role?: string;
+  }) =>
+    request<AuthResponse>('/auth/google', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  getMe: () => request<{ user: User; organization: Organization }>('/auth/me'),
 };

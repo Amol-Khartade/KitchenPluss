@@ -1,8 +1,18 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import pool from '../db/pool.js';
+import { optionalAuth, AuthenticatedRequest } from '../middleware/auth.js';
 
 const router = Router();
+router.use(optionalAuth);
+
+function resolveOrgId(req: AuthenticatedRequest): string {
+  return (
+    req.user?.organizationId ||
+    (req.headers['x-organization-id'] as string) ||
+    '11111111-1111-1111-1111-111111111111'
+  );
+}
 
 // ------------------------------------------------------------------ //
 // Validation schemas
@@ -32,6 +42,7 @@ const PatchSupplierOrderSchema = z.object({
 function formatOrder(row: any) {
   return {
     id: row.id,
+    organization_id: row.organization_id,
     ingredient_id: row.ingredient_id,
     ingredient_name: row.ingredient_name,
     unit: row.unit,
@@ -44,15 +55,17 @@ function formatOrder(row: any) {
 }
 
 // ------------------------------------------------------------------ //
-// GET /api/supplier-orders — list, optional ?status= filter
+// GET /api/supplier-orders — list scoped to organization
 // ------------------------------------------------------------------ //
-router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
+    const orgId = resolveOrgId(req);
     const status = req.query['status'] as string | undefined;
 
     const { rows } = status
       ? await pool.query(
           `SELECT so.id,
+                  so.organization_id,
                   so.ingredient_id,
                   i.name AS ingredient_name,
                   i.unit,
@@ -62,12 +75,13 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
                   so.created_at
            FROM supplier_orders so
            JOIN ingredients i ON i.id = so.ingredient_id
-           WHERE so.status = $1
+           WHERE so.organization_id = $1 AND so.status = $2
            ORDER BY so.created_at DESC`,
-          [status]
+          [orgId, status]
         )
       : await pool.query(
           `SELECT so.id,
+                  so.organization_id,
                   so.ingredient_id,
                   i.name AS ingredient_name,
                   i.unit,
@@ -77,7 +91,9 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
                   so.created_at
            FROM supplier_orders so
            JOIN ingredients i ON i.id = so.ingredient_id
-           ORDER BY so.created_at DESC`
+           WHERE so.organization_id = $1
+           ORDER BY so.created_at DESC`,
+          [orgId]
         );
 
     res.json(rows.map(formatOrder));
@@ -89,12 +105,14 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 // ------------------------------------------------------------------ //
 // GET /api/supplier-orders/:id — get one
 // ------------------------------------------------------------------ //
-router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
+    const orgId = resolveOrgId(req);
     const { id } = req.params;
 
     const { rows } = await pool.query(
       `SELECT so.id,
+              so.organization_id,
               so.ingredient_id,
               i.name AS ingredient_name,
               i.unit,
@@ -104,12 +122,12 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
               so.created_at
        FROM supplier_orders so
        JOIN ingredients i ON i.id = so.ingredient_id
-       WHERE so.id = $1`,
-      [id]
+       WHERE so.id = $1 AND so.organization_id = $2`,
+      [id, orgId]
     );
 
     if (rows.length === 0) {
-      res.status(404).json({ error: 'Supplier order not found' });
+      res.status(404).json({ error: 'Supplier order not found in your organization' });
       return;
     }
 
@@ -122,8 +140,9 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 // ------------------------------------------------------------------ //
 // POST /api/supplier-orders — create order
 // ------------------------------------------------------------------ //
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
+    const orgId = resolveOrgId(req);
     const parsed = CreateSupplierOrderSchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(422).json({ error: 'Validation failed', details: parsed.error.flatten() });
@@ -132,21 +151,21 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 
     const { ingredient_id, quantity_ordered, status = 'PENDING', quality_flag = 'PENDING_INSPECTION' } = parsed.data;
 
-    // Verify ingredient exists
+    // Verify ingredient exists in this organization
     const { rows: ingCheck } = await pool.query(
-      `SELECT id, name, unit FROM ingredients WHERE id = $1`,
-      [ingredient_id]
+      `SELECT id, name, unit FROM ingredients WHERE id = $1 AND organization_id = $2`,
+      [ingredient_id, orgId]
     );
     if (ingCheck.length === 0) {
-      res.status(404).json({ error: 'Ingredient not found' });
+      res.status(404).json({ error: 'Ingredient not found in your organization' });
       return;
     }
 
     const { rows } = await pool.query(
-      `INSERT INTO supplier_orders (ingredient_id, quantity_ordered, status, quality_flag)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO supplier_orders (organization_id, ingredient_id, quantity_ordered, status, quality_flag)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
-      [ingredient_id, quantity_ordered, status, quality_flag]
+      [orgId, ingredient_id, quantity_ordered, status, quality_flag]
     );
 
     res.status(201).json({
@@ -162,9 +181,10 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 // ------------------------------------------------------------------ //
 // PATCH /api/supplier-orders/:id/status — update order status
 // ------------------------------------------------------------------ //
-router.patch('/:id/status', async (req: Request, res: Response, next: NextFunction) => {
+router.patch('/:id/status', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const client = await pool.connect();
   try {
+    const orgId = resolveOrgId(req);
     const { id } = req.params;
 
     const parsed = PatchSupplierOrderSchema.safeParse(req.body);
@@ -178,19 +198,22 @@ router.patch('/:id/status', async (req: Request, res: Response, next: NextFuncti
     await client.query('BEGIN');
 
     const { rows: orderRows } = await client.query(
-      `SELECT id, ingredient_id, quantity_ordered, status FROM supplier_orders WHERE id = $1 FOR UPDATE`,
-      [id]
+      `SELECT id, ingredient_id, quantity_ordered, status 
+       FROM supplier_orders 
+       WHERE id = $1 AND organization_id = $2 
+       FOR UPDATE`,
+      [id, orgId]
     );
 
     if (orderRows.length === 0) {
       await client.query('ROLLBACK');
-      res.status(404).json({ error: 'Supplier order not found' });
+      res.status(404).json({ error: 'Supplier order not found in your organization' });
       return;
     }
 
     const currentOrder = orderRows[0];
     const setClauses: string[] = [];
-    const values: unknown[] = [id];
+    const values: unknown[] = [id, orgId];
 
     if (status !== undefined) {
       values.push(status);
@@ -208,7 +231,7 @@ router.patch('/:id/status', async (req: Request, res: Response, next: NextFuncti
     const { rows: updated } = await client.query(
       `UPDATE supplier_orders
        SET ${setClauses.join(', ')}
-       WHERE id = $1
+       WHERE id = $1 AND organization_id = $2
        RETURNING *`,
       values
     );
@@ -219,8 +242,8 @@ router.patch('/:id/status', async (req: Request, res: Response, next: NextFuncti
         `UPDATE ingredients
          SET current_stock = current_stock + $1,
              updated_at = NOW()
-         WHERE id = $2`,
-        [currentOrder.quantity_ordered, currentOrder.ingredient_id]
+         WHERE id = $2 AND organization_id = $3`,
+        [currentOrder.quantity_ordered, currentOrder.ingredient_id, orgId]
       );
     }
 

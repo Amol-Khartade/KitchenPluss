@@ -42,7 +42,7 @@ export default function KitchenQueueScreen() {
     if (wsTickets.length > 0) {
       // Merge: WS tickets take priority, fill gaps with fetched
       const wsIds = new Set(wsTickets.map((t) => t.id));
-      const fromServer = (fetchedTickets ?? []).filter((t) => !wsIds.has(t.id));
+      const fromServer = (fetchedTickets ?? []).filter((t: LiveTicket) => !wsIds.has(t.id));
       return [...wsTickets, ...fromServer];
     }
     return fetchedTickets ?? [];

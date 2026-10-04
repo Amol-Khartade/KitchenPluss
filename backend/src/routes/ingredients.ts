@@ -1,8 +1,18 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import pool from '../db/pool.js';
+import { optionalAuth, AuthenticatedRequest } from '../middleware/auth.js';
 
 const router = Router();
+router.use(optionalAuth);
+
+function resolveOrgId(req: AuthenticatedRequest): string {
+  return (
+    req.user?.organizationId ||
+    (req.headers['x-organization-id'] as string) ||
+    '11111111-1111-1111-1111-111111111111'
+  );
+}
 
 // ------------------------------------------------------------------ //
 // Validation schemas
@@ -28,8 +38,6 @@ const PatchIngredientSchema = z.object({
   threshold_qty: z.number().nonnegative().optional(),
   min_threshold: z.number().nonnegative().optional(),
   cost_per_unit: z.number().nonnegative().optional(),
-}).refine((data) => Object.keys(data).length > 0, {
-  message: 'At least one field must be provided for update',
 });
 
 // ------------------------------------------------------------------ //
@@ -38,6 +46,7 @@ const PatchIngredientSchema = z.object({
 function formatIngredient(row: any) {
   return {
     id: row.id,
+    organization_id: row.organization_id,
     name: row.name,
     unit: row.unit,
     current_stock: Number(row.current_stock),
@@ -52,14 +61,17 @@ function formatIngredient(row: any) {
 }
 
 // ------------------------------------------------------------------ //
-// GET /api/ingredients — list all
+// GET /api/ingredients — list all for caller's organization
 // ------------------------------------------------------------------ //
-router.get('/', async (_req: Request, res: Response, next: NextFunction) => {
+router.get('/', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
+    const orgId = resolveOrgId(req);
     const { rows } = await pool.query(
-      `SELECT id, name, unit, current_stock, minimum_threshold, cost_per_unit, created_at, updated_at
+      `SELECT id, organization_id, name, unit, current_stock, minimum_threshold, cost_per_unit, created_at, updated_at
        FROM ingredients
-       ORDER BY name ASC`
+       WHERE organization_id = $1
+       ORDER BY name ASC`,
+      [orgId]
     );
     res.json(rows.map(formatIngredient));
   } catch (err) {
@@ -70,18 +82,19 @@ router.get('/', async (_req: Request, res: Response, next: NextFunction) => {
 // ------------------------------------------------------------------ //
 // GET /api/ingredients/:id — get one
 // ------------------------------------------------------------------ //
-router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
+    const orgId = resolveOrgId(req);
     const { id } = req.params;
     const { rows } = await pool.query(
-      `SELECT id, name, unit, current_stock, minimum_threshold, cost_per_unit, created_at, updated_at
+      `SELECT id, organization_id, name, unit, current_stock, minimum_threshold, cost_per_unit, created_at, updated_at
        FROM ingredients
-       WHERE id = $1`,
-      [id]
+       WHERE id = $1 AND organization_id = $2`,
+      [id, orgId]
     );
 
     if (rows.length === 0) {
-      res.status(404).json({ error: 'Ingredient not found' });
+      res.status(404).json({ error: 'Ingredient not found in your organization' });
       return;
     }
 
@@ -92,10 +105,11 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // ------------------------------------------------------------------ //
-// POST /api/ingredients — create
+// POST /api/ingredients — create (Admin / Owner or Kitchen Staff)
 // ------------------------------------------------------------------ //
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
+    const orgId = resolveOrgId(req);
     const parsed = CreateIngredientSchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(422).json({ error: 'Validation failed', details: parsed.error.flatten() });
@@ -117,10 +131,15 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     const finalThreshold = minimum_threshold ?? min_threshold ?? threshold_qty ?? 0;
 
     const { rows } = await pool.query(
-      `INSERT INTO ingredients (name, unit, current_stock, minimum_threshold, cost_per_unit)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO ingredients (organization_id, name, unit, current_stock, minimum_threshold, cost_per_unit)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (organization_id, name) DO UPDATE
+       SET current_stock = EXCLUDED.current_stock,
+           minimum_threshold = EXCLUDED.minimum_threshold,
+           cost_per_unit = EXCLUDED.cost_per_unit,
+           updated_at = NOW()
        RETURNING *`,
-      [name, unit, finalStock, finalThreshold, cost_per_unit]
+      [orgId, name, unit, finalStock, finalThreshold, cost_per_unit]
     );
 
     res.status(201).json(formatIngredient(rows[0]));
@@ -130,10 +149,44 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // ------------------------------------------------------------------ //
-// PATCH /api/ingredients/:id — update stock/threshold/etc.
+// PATCH /api/ingredients/:id/stock — direct stock level update
 // ------------------------------------------------------------------ //
-router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.patch('/:id/stock', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
+    const orgId = resolveOrgId(req);
+    const { id } = req.params;
+    const current_stock = Number(req.body.current_stock ?? req.body.stock);
+
+    if (isNaN(current_stock) || current_stock < 0) {
+      res.status(400).json({ error: 'Valid non-negative stock quantity required' });
+      return;
+    }
+
+    const { rows } = await pool.query(
+      `UPDATE ingredients
+       SET current_stock = $1, updated_at = NOW()
+       WHERE id = $2 AND organization_id = $3
+       RETURNING *`,
+      [current_stock, id, orgId]
+    );
+
+    if (rows.length === 0) {
+      res.status(404).json({ error: 'Ingredient not found in your organization' });
+      return;
+    }
+
+    res.json(formatIngredient(rows[0]));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ------------------------------------------------------------------ //
+// PATCH /api/ingredients/:id — update stock/threshold/cost
+// ------------------------------------------------------------------ //
+router.patch('/:id', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const orgId = resolveOrgId(req);
     const { id } = req.params;
 
     const parsed = PatchIngredientSchema.safeParse(req.body);
@@ -144,7 +197,7 @@ router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => 
 
     const updates = parsed.data;
     const setClauses: string[] = [];
-    const values: unknown[] = [id];
+    const values: unknown[] = [id, orgId];
 
     if (updates.name !== undefined) {
       values.push(updates.name);
@@ -174,13 +227,13 @@ router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => 
     const { rows } = await pool.query(
       `UPDATE ingredients
        SET ${setClauses.join(', ')}
-       WHERE id = $1
+       WHERE id = $1 AND organization_id = $2
        RETURNING *`,
       values
     );
 
     if (rows.length === 0) {
-      res.status(404).json({ error: 'Ingredient not found' });
+      res.status(404).json({ error: 'Ingredient not found in your organization' });
       return;
     }
 
@@ -193,17 +246,18 @@ router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => 
 // ------------------------------------------------------------------ //
 // DELETE /api/ingredients/:id
 // ------------------------------------------------------------------ //
-router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.delete('/:id', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
+    const orgId = resolveOrgId(req);
     const { id } = req.params;
 
     const { rowCount } = await pool.query(
-      `DELETE FROM ingredients WHERE id = $1`,
-      [id]
+      `DELETE FROM ingredients WHERE id = $1 AND organization_id = $2`,
+      [id, orgId]
     );
 
     if (rowCount === 0) {
-      res.status(404).json({ error: 'Ingredient not found' });
+      res.status(404).json({ error: 'Ingredient not found in your organization' });
       return;
     }
 

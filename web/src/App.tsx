@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Flame } from 'lucide-react';
 import {
   ticketsApi,
   ingredientsApi,
@@ -10,17 +11,22 @@ import {
   aiApi,
 } from './api/client.js';
 import { useSocket } from './hooks/useSocket.js';
-import { Header } from './components/Header.js';
+import { Header, AppTab } from './components/Header.js';
 import { StationFilter } from './components/StationFilter.js';
 import { KdsBoard } from './components/KdsBoard.js';
 import { NewTicketModal } from './components/NewTicketModal.js';
 import { InventoryView } from './components/InventoryView.js';
 import { AiPrepView } from './components/AiPrepView.js';
 import { WasteLogForm } from './components/WasteLogForm.js';
+import { UserManagementView } from './components/UserManagementView.js';
+import { AuthPortal } from './components/AuthPortal.js';
+import { useAuth } from './context/AuthContext.js';
 import { TicketStatus, AiPrepSheetResponse } from './types/index.js';
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<'kds' | 'inventory' | 'ai-prep' | 'waste-log'>('kds');
+  const { isAuthenticated, isLoading, hasAdminAccess } = useAuth();
+
+  const [activeTab, setActiveTab] = useState<AppTab>('kds');
   const [selectedStation, setSelectedStation] = useState<string>('ALL');
   const [isNewTicketModalOpen, setIsNewTicketModalOpen] = useState<boolean>(false);
   const [updatingTicketId, setUpdatingTicketId] = useState<string | null>(null);
@@ -30,39 +36,45 @@ export function App() {
   const { isConnected, stationWorkloads, alerts, dismissAlert } = useSocket();
 
   // ---------------------------------------------------------------- //
-  // Queries
+  // Queries (Only active when authenticated)
   // ---------------------------------------------------------------- //
   const { data: tickets = [] } = useQuery({
     queryKey: ['tickets'],
     queryFn: () => ticketsApi.getAll(),
+    enabled: isAuthenticated,
     refetchInterval: 10000,
   });
 
   const { data: ingredients = [] } = useQuery({
     queryKey: ['ingredients'],
     queryFn: () => ingredientsApi.getAll(),
+    enabled: isAuthenticated,
     refetchInterval: 15000,
   });
 
   const { data: recipes = [] } = useQuery({
     queryKey: ['recipes'],
     queryFn: () => recipesApi.getAll(),
+    enabled: isAuthenticated,
     staleTime: 60000,
   });
 
   const { data: prepLogs = [] } = useQuery({
     queryKey: ['prep-logs'],
     queryFn: () => prepLogsApi.getAll(),
+    enabled: isAuthenticated,
   });
 
   const { data: foodCostSummaries = [] } = useQuery({
     queryKey: ['food-cost'],
     queryFn: () => foodCostApi.getSummary(),
+    enabled: isAuthenticated,
   });
 
   const { data: supplierOrders = [] } = useQuery({
     queryKey: ['supplier-orders'],
     queryFn: () => supplierOrdersApi.getAll(),
+    enabled: isAuthenticated,
   });
 
   // ---------------------------------------------------------------- //
@@ -174,9 +186,30 @@ export function App() {
     },
   });
 
+  // ---------------------------------------------------------------- //
+  // Strict Authentication Guard
+  // Without user login, NEVER show the dashboard!
+  // ---------------------------------------------------------------- //
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-bg-primary flex flex-col items-center justify-center space-y-4">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-600 via-indigo-600 to-amber-500 p-0.5 animate-pulse">
+          <div className="w-full h-full bg-bg-surface rounded-[14px] flex items-center justify-center">
+            <Flame className="w-7 h-7 text-amber-400" />
+          </div>
+        </div>
+        <div className="text-xs text-slate-400 font-mono">Authenticating KitchenPulse session...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <AuthPortal />;
+  }
+
   return (
     <div className="min-h-screen bg-bg-primary text-slate-100 flex flex-col font-sans">
-      {/* Global Navigation Header */}
+      {/* Global Navigation Header with Hotel Branding */}
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -243,6 +276,9 @@ export function App() {
             isSubmitting={createPrepLogMutation.isPending}
           />
         )}
+
+        {/* Tab 5: Team & Staff Management (Owner & Admin Only) */}
+        {activeTab === 'team' && hasAdminAccess && <UserManagementView />}
       </main>
 
       {/* New Ticket Modal */}
@@ -255,4 +291,5 @@ export function App() {
     </div>
   );
 }
+
 export default App;

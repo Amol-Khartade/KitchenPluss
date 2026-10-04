@@ -35,3 +35,6 @@ Thumbs.db
 
 # Gemini
 .gemini/
+
+# Scratch/Nested Repos
+kitchenpulse-system/

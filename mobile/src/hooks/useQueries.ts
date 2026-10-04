@@ -22,8 +22,8 @@ export function useTickets(status?: string) {
   return useQuery({
     queryKey: QUERY_KEYS.tickets(status),
     queryFn: () => api.tickets.list(status),
-    select: (res) => res.data,
-    refetchInterval: 30_000, // Background poll every 30s as fallback
+    select: (res: any) => (Array.isArray(res) ? res : res?.data ?? []),
+    refetchInterval: 15_000,
   });
 }
 
@@ -54,8 +54,8 @@ export function useRecipes() {
   return useQuery({
     queryKey: QUERY_KEYS.recipes(),
     queryFn: api.recipes.list,
-    select: (res) => res.data,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    select: (res: any) => (Array.isArray(res) ? res : res?.data ?? []),
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -65,8 +65,8 @@ export function useIngredients() {
   return useQuery({
     queryKey: QUERY_KEYS.ingredients(),
     queryFn: api.ingredients.list,
-    select: (res) => res.data,
-    refetchInterval: 60_000,
+    select: (res: any) => (Array.isArray(res) ? res : res?.data ?? []),
+    refetchInterval: 30_000,
   });
 }
 
@@ -76,7 +76,7 @@ export function useFoodCostSummary() {
   return useQuery({
     queryKey: QUERY_KEYS.foodCost(),
     queryFn: api.foodCost.list,
-    select: (res) => res.data,
+    select: (res: any) => (Array.isArray(res) ? res : res?.data ?? []),
     refetchInterval: 5 * 60 * 1000,
   });
 }
@@ -87,8 +87,8 @@ export function usePrepOptimization() {
   return useQuery({
     queryKey: QUERY_KEYS.prepSheet(),
     queryFn: () => api.ai.runPrepOptimization(),
-    select: (res) => res.data,
-    staleTime: 30 * 60 * 1000, // 30 minutes
+    select: (res: any) => res?.data ?? res,
+    staleTime: 30 * 60 * 1000,
     retry: 1,
   });
 }
@@ -99,7 +99,6 @@ export function useLogWaste() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (entries: WasteFormEntry[]) => {
-      // Submit all entries in parallel
       const results = await Promise.allSettled(
         entries.map((entry) =>
           api.prepLogs.create({
