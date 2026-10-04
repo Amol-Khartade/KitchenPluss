@@ -1,0 +1,97 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: kitchenpulse-db
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password123}
+      POSTGRES_DB: ${POSTGRES_DB:-kitchenpulse}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/src/db/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-kitchenpulse}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - kitchenpulse-net
+
+  postgres-mcp:
+    image: node:20-alpine
+    container_name: kitchenpulse-postgres-mcp
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./mcp-servers/postgres-mcp:/app
+      - /app/node_modules
+    command: ["sh", "-c", "npm install && npx tsx src/index.ts"]
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password123}@postgres:5432/${POSTGRES_DB:-kitchenpulse}
+      MCP_POSTGRES_PORT: ${MCP_POSTGRES_PORT:-8001}
+      NODE_ENV: ${NODE_ENV:-development}
+    ports:
+      - "${MCP_POSTGRES_PORT:-8001}:${MCP_POSTGRES_PORT:-8001}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - kitchenpulse-net
+
+  backend:
+    image: node:20-alpine
+    container_name: kitchenpulse-backend
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: ["sh", "-c", "npm install && npx tsx watch src/index.ts"]
+    environment:
+      PORT: ${PORT:-5000}
+      NODE_ENV: ${NODE_ENV:-development}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password123}@postgres:5432/${POSTGRES_DB:-kitchenpulse}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      MCP_POSTGRES_PORT: ${MCP_POSTGRES_PORT:-8001}
+      MCP_SUPPLIER_PORT: ${MCP_SUPPLIER_PORT:-8002}
+    ports:
+      - "${PORT:-5000}:${PORT:-5000}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      postgres-mcp:
+        condition: service_started
+    networks:
+      - kitchenpulse-net
+
+  web:
+    image: node:20-alpine
+    container_name: kitchenpulse-web
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+    command: ["sh", "-c", "npm install && npm run dev"]
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - kitchenpulse-net
+
+volumes:
+  pgdata:
+    driver: local
+
+networks:
+  kitchenpulse-net:
+    driver: bridge

@@ -1,0 +1,29 @@
+{
+  "name": "kitchenpulse-system",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "web",
+    "mcp-servers/postgres-mcp",
+    "mcp-servers/supplier-mcp"
+  ],
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:web": "cd web && npm run dev",
+    "dev:postgres-mcp": "cd mcp-servers/postgres-mcp && npm run dev",
+    "dev:supplier-mcp": "cd mcp-servers/supplier-mcp && npm run dev",
+    "dev:mobile": "cd mobile && npx expo start",
+    "build:web": "cd web && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "build:all": "npm run build:backend && npm run build:web",
+    "seed": "cd backend && npm run seed",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "test:mcp": "cd backend && npx tsx scripts/test-mcp-servers.ts",
+    "test:ws": "cd backend && npx tsx scripts/test-ws-and-ai.ts",
+    "test:all": "npm run test:mcp && npm run test:ws",
+    "install:all": "npm install && cd mobile && npm install"
+  }
+}

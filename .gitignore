@@ -1,0 +1,37 @@
+# ============================================================
+# KitchenPulse — Monorepo .gitignore
+# ============================================================
+
+# Node
+node_modules/
+dist/
+.env
+*.log
+
+# TypeScript
+*.tsbuildinfo
+*.js.map
+
+# Expo / React Native
+mobile/.expo/
+mobile/android/
+mobile/ios/
+mobile/web-build/
+*.apk
+*.ipa
+*.aab
+
+# Docker
+.docker/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Gemini
+.gemini/
