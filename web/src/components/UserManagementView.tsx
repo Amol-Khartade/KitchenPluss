@@ -123,17 +123,17 @@ export const UserManagementView: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* View Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-bg-surface p-6 rounded-2xl border border-bg-border shadow-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-6 rounded-2xl border border-white/10 shadow-glass">
         <div className="flex items-start space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-sky-600 via-indigo-600 to-amber-500 p-0.5 flex items-center justify-center shadow-lg shadow-sky-950/50">
-            <div className="w-full h-full bg-bg-surface rounded-[10px] flex items-center justify-center">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-amber-500 p-0.5 flex items-center justify-center shadow-lg shadow-sky-950/50 flex-shrink-0">
+            <div className="w-full h-full bg-slate-900/90 rounded-[10px] flex items-center justify-center">
               <Users className="w-6 h-6 text-sky-400" />
             </div>
           </div>
           <div>
             <div className="flex items-center space-x-2.5">
-              <h2 className="text-xl font-bold text-white tracking-tight">Team & User Management</h2>
-              <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-sky-950 text-sky-400 border border-sky-800">
+              <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">Team & User Management</h2>
+              <span className="text-[10px] uppercase font-mono px-2.5 py-0.5 rounded-full bg-sky-950/70 text-sky-300 border border-sky-500/40 shadow-sm">
                 {organization?.name || 'Client Ops'}
               </span>
             </div>
@@ -149,7 +149,7 @@ export const UserManagementView: React.FC = () => {
             setIsAddUserOpen(!isAddUserOpen);
             setErrorMessage(null);
           }}
-          className="flex items-center justify-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-sky-900/40 hover:shadow-sky-800/60 transition-all active:scale-95"
+          className="flex items-center justify-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-sky-500 via-indigo-500 to-sky-600 hover:from-sky-400 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-glow-sky border border-sky-400/30 transition-all duration-200 active:scale-95 self-start sm:self-auto"
         >
           <UserPlus className="w-4 h-4" />
           <span>{isAddUserOpen ? 'Cancel' : 'Add Team Member'}</span>
@@ -158,11 +158,12 @@ export const UserManagementView: React.FC = () => {
 
       {/* Notifications */}
       {successMessage && (
-        <div className="flex items-center space-x-2 p-3 bg-emerald-950/60 border border-emerald-800 text-emerald-300 rounded-xl text-xs animate-in fade-in">
+        <div className="flex items-center space-x-2 p-3.5 bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 rounded-xl text-xs animate-in fade-in shadow-sm">
           <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
           <span>{successMessage}</span>
         </div>
       )}
+
       {errorMessage && (
         <div className="flex items-center space-x-2 p-3 bg-rose-950/60 border border-rose-800 text-rose-300 rounded-xl text-xs animate-in fade-in">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -172,8 +173,8 @@ export const UserManagementView: React.FC = () => {
 
       {/* Add User Expandable Drawer/Form */}
       {isAddUserOpen && (
-        <div className="bg-bg-surface border border-sky-500/40 rounded-2xl p-6 shadow-2xl animate-in slide-in-from-top-4 duration-200">
-          <div className="flex items-center justify-between mb-4 pb-3 border-b border-bg-border">
+        <div className="glass-panel border border-sky-500/40 rounded-2xl p-6 shadow-2xl animate-in slide-in-from-top-4 duration-200">
+          <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
             <div className="flex items-center space-x-2">
               <Sparkles className="w-4 h-4 text-sky-400" />
               <h3 className="text-sm font-bold text-white">Add New Team Member to {organization?.name}</h3>
@@ -194,7 +195,7 @@ export const UserManagementView: React.FC = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Gordon Ramsay"
-                  className="w-full bg-bg-card border border-bg-border focus:border-sky-500 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                  className="w-full glass-input rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -211,7 +212,7 @@ export const UserManagementView: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="gordon@kitchenpulse.io"
-                  className="w-full bg-bg-card border border-bg-border focus:border-sky-500 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                  className="w-full glass-input rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -225,13 +226,12 @@ export const UserManagementView: React.FC = () => {
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
-                  className="w-full bg-bg-card border border-bg-border focus:border-sky-500 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer"
+                  className="w-full glass-input rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none cursor-pointer"
                 >
                   {AVAILABLE_ROLES.map((r) => {
-                    // Non-owners cannot create Owner
                     if (r === 'Owner' && !isOwner) return null;
                     return (
-                      <option key={r} value={r}>
+                      <option key={r} value={r} className="bg-slate-900 text-white">
                         {r}
                       </option>
                     );
@@ -251,7 +251,7 @@ export const UserManagementView: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="password123"
-                  className="w-full bg-bg-card border border-bg-border focus:border-sky-500 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500 font-mono"
+                  className="w-full glass-input rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none font-mono"
                 />
               </div>
             </div>
@@ -260,14 +260,14 @@ export const UserManagementView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsAddUserOpen(false)}
-                className="px-4 py-2 bg-bg-card hover:bg-bg-hover text-slate-300 text-xs font-semibold rounded-xl border border-bg-border transition-colors"
+                className="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold rounded-xl border border-white/10 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={createUserMutation.isPending}
-                className="flex items-center space-x-2 px-5 py-2 bg-sky-500 hover:bg-sky-400 text-white text-xs font-semibold rounded-xl shadow-lg shadow-sky-900/40 transition-all disabled:opacity-50"
+                className="flex items-center space-x-2 px-5 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-glow-sky border border-sky-400/30 transition-all active:scale-95 disabled:opacity-50"
               >
                 {createUserMutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 <span>Create User</span>
@@ -278,8 +278,8 @@ export const UserManagementView: React.FC = () => {
       )}
 
       {/* Users Table */}
-      <div className="bg-bg-surface border border-bg-border rounded-2xl overflow-hidden shadow-xl">
-        <div className="p-4 border-b border-bg-border flex items-center justify-between">
+      <div className="glass-panel border border-white/10 rounded-2xl overflow-hidden shadow-glass">
+        <div className="p-4 sm:px-6 border-b border-white/10 flex items-center justify-between bg-slate-900/40">
           <div className="flex items-center space-x-2">
             <Shield className="w-4 h-4 text-sky-400" />
             <span className="text-xs font-bold text-white uppercase tracking-wider">
@@ -305,131 +305,211 @@ export const UserManagementView: React.FC = () => {
             No team members registered yet in this organization.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-bg-card text-slate-400 uppercase text-[10px] tracking-wider font-semibold border-b border-bg-border">
-                <tr>
-                  <th className="py-3 px-4">Member</th>
-                  <th className="py-3 px-4">Role</th>
-                  <th className="py-3 px-4">Auth Type</th>
-                  <th className="py-3 px-4">Role Assignment</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-bg-border">
-                {users.map((u: User) => {
-                  const isCurrent = u.id === currentUser?.id;
-                  const isUserOwner = u.role === 'Owner';
-                  const isUserAdmin = u.role === 'Admin';
+          <>
+            {/* Desktop / Tablet Table */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-950/60 text-slate-400 uppercase text-[10px] tracking-wider font-semibold border-b border-white/10">
+                  <tr>
+                    <th className="py-3 px-4">Member</th>
+                    <th className="py-3 px-4">Role</th>
+                    <th className="py-3 px-4">Auth Type</th>
+                    <th className="py-3 px-4">Role Assignment</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {users.map((u: User) => {
+                    const isCurrent = u.id === currentUser?.id;
+                    const isUserOwner = u.role === 'Owner';
+                    const isUserAdmin = u.role === 'Admin';
 
-                  return (
-                    <tr key={u.id} className="hover:bg-bg-card/50 transition-colors">
-                      {/* Member Info */}
-                      <td className="py-3 px-4">
-                        <div className="flex items-center space-x-3">
-                          {u.avatar_url ? (
-                            <img
-                              src={u.avatar_url}
-                              alt={u.name}
-                              className="w-8 h-8 rounded-lg object-cover ring-1 ring-sky-500/40"
-                            />
-                          ) : (
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shadow-sm">
-                              {u.name.charAt(0).toUpperCase()}
+                    return (
+                      <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
+                        {/* Member Info */}
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center space-x-3">
+                            {u.avatar_url ? (
+                              <img
+                                src={u.avatar_url}
+                                alt={u.name}
+                                className="w-8 h-8 rounded-lg object-cover ring-1 ring-sky-500/40"
+                              />
+                            ) : (
+                              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shadow-sm">
+                                {u.name.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                            <div>
+                              <div className="flex items-center space-x-1.5">
+                                <span className="font-semibold text-white">{u.name}</span>
+                                {isCurrent && (
+                                  <span className="text-[9px] px-1.5 py-0.2 bg-sky-950 text-sky-400 border border-sky-800 rounded">
+                                    You
+                                  </span>
+                                )}
+                                {isUserOwner && <Crown className="w-3.5 h-3.5 text-amber-400" />}
+                              </div>
+                              <span className="text-[11px] text-slate-400 font-mono">{u.email}</span>
                             </div>
-                          )}
-                          <div>
-                            <div className="flex items-center space-x-1.5">
-                              <span className="font-semibold text-white">{u.name}</span>
-                              {isCurrent && (
-                                <span className="text-[9px] px-1.5 py-0.2 bg-sky-950 text-sky-400 border border-sky-800 rounded">
-                                  You
-                                </span>
-                              )}
-                              {isUserOwner && <Crown className="w-3.5 h-3.5 text-amber-400" />}
-                            </div>
-                            <span className="text-[11px] text-slate-400 font-mono">{u.email}</span>
                           </div>
+                        </td>
+
+                        {/* Current Role Badge */}
+                        <td className="py-3.5 px-4">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider ${getRoleBadgeStyle(
+                              u.role
+                            )}`}
+                          >
+                            {u.role}
+                          </span>
+                        </td>
+
+                        {/* Auth Type */}
+                        <td className="py-3.5 px-4">
+                          <span className="text-[11px] text-slate-300 font-mono capitalize">
+                            {u.auth_provider === 'google' ? 'Google Auth' : 'Email & Password'}
+                          </span>
+                        </td>
+
+                        {/* Role Modifier Dropdown */}
+                        <td className="py-3.5 px-4">
+                          {isOwner && !isCurrent ? (
+                            <select
+                              value={u.role}
+                              onChange={(e) => updateRoleMutation.mutate({ id: u.id, role: e.target.value })}
+                              className="glass-input text-slate-200 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none cursor-pointer"
+                            >
+                              {AVAILABLE_ROLES.map((r) => (
+                                <option key={r} value={r} className="bg-slate-900 text-white">
+                                  {r}
+                                </option>
+                              ))}
+                            </select>
+                          ) : !isOwner && isUserAdmin ? (
+                            <span className="text-slate-500 text-[11px]">Protected Admin</span>
+                          ) : !isOwner && !isUserOwner && !isCurrent ? (
+                            <select
+                              value={u.role}
+                              onChange={(e) => updateRoleMutation.mutate({ id: u.id, role: e.target.value })}
+                              className="glass-input text-slate-200 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none cursor-pointer"
+                            >
+                              {AVAILABLE_ROLES.filter((r) => r !== 'Owner' && r !== 'Admin').map((r) => (
+                                <option key={r} value={r} className="bg-slate-900 text-white">
+                                  {r}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <span className="text-slate-500 text-[11px] italic">Fixed (Owner)</span>
+                          )}
+                        </td>
+
+                        {/* Actions */}
+                        <td className="py-3.5 px-4 text-right">
+                          {!isCurrent && !isUserOwner && (isOwner || !isUserAdmin) ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm(`Are you sure you want to remove ${u.name} (${u.email}) from ${organization?.name}?`)) {
+                                  deleteUserMutation.mutate(u.id);
+                                }
+                              }}
+                              className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition-colors"
+                              title="Remove User"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          ) : null}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards (sm:hidden) */}
+            <div className="sm:hidden p-3 space-y-3">
+              {users.map((u: User) => {
+                const isCurrent = u.id === currentUser?.id;
+                const isUserOwner = u.role === 'Owner';
+                const isUserAdmin = u.role === 'Admin';
+
+                return (
+                  <div key={u.id} className="p-4 rounded-xl glass-card space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2.5">
+                        <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs">
+                          {u.name.charAt(0).toUpperCase()}
                         </div>
-                      </td>
+                        <div>
+                          <div className="flex items-center space-x-1.5">
+                            <span className="font-bold text-white text-sm">{u.name}</span>
+                            {isCurrent && (
+                              <span className="text-[9px] px-1.5 py-0.2 bg-sky-950 text-sky-400 border border-sky-800 rounded">
+                                You
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-xs text-slate-400 font-mono">{u.email}</span>
+                        </div>
+                      </div>
 
-                      {/* Current Role Badge */}
-                      <td className="py-3 px-4">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider ${getRoleBadgeStyle(
-                            u.role
-                          )}`}
-                        >
-                          {u.role}
-                        </span>
-                      </td>
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold border uppercase tracking-wider ${getRoleBadgeStyle(
+                          u.role
+                        )}`}
+                      >
+                        {u.role}
+                      </span>
+                    </div>
 
-                      {/* Auth Type */}
-                      <td className="py-3 px-4">
-                        <span className="text-[11px] text-slate-300 font-mono capitalize">
-                          {u.auth_provider === 'google' ? 'Google Auth' : 'Email & Password'}
-                        </span>
-                      </td>
+                    <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                      <div className="text-[11px] text-slate-400">
+                        {u.auth_provider === 'google' ? 'Google' : 'Email/Pass'}
+                      </div>
 
-                      {/* Role Modifier Dropdown */}
-                      <td className="py-3 px-4">
+                      <div className="flex items-center space-x-2">
                         {isOwner && !isCurrent ? (
                           <select
                             value={u.role}
                             onChange={(e) => updateRoleMutation.mutate({ id: u.id, role: e.target.value })}
-                            className="bg-bg-card border border-bg-border focus:border-sky-500 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none cursor-pointer"
+                            className="glass-input text-xs rounded-lg px-2 py-1"
                           >
                             {AVAILABLE_ROLES.map((r) => (
-                              <option key={r} value={r}>
+                              <option key={r} value={r} className="bg-slate-900 text-white">
                                 {r}
                               </option>
                             ))}
                           </select>
-                        ) : !isOwner && isUserAdmin ? (
-                          <span className="text-slate-500 text-[11px]">Protected Admin</span>
-                        ) : !isOwner && !isUserOwner && !isCurrent ? (
-                          <select
-                            value={u.role}
-                            onChange={(e) => updateRoleMutation.mutate({ id: u.id, role: e.target.value })}
-                            className="bg-bg-card border border-bg-border focus:border-sky-500 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none cursor-pointer"
-                          >
-                            {AVAILABLE_ROLES.filter((r) => r !== 'Owner' && r !== 'Admin').map((r) => (
-                              <option key={r} value={r}>
-                                {r}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <span className="text-slate-500 text-[11px] italic">Fixed (Owner)</span>
-                        )}
-                      </td>
+                        ) : null}
 
-                      {/* Actions */}
-                      <td className="py-3 px-4 text-right">
                         {!isCurrent && !isUserOwner && (isOwner || !isUserAdmin) ? (
                           <button
                             type="button"
                             onClick={() => {
-                              if (confirm(`Are you sure you want to remove ${u.name} (${u.email}) from ${organization?.name}?`)) {
+                              if (confirm(`Remove ${u.name}?`)) {
                                 deleteUserMutation.mutate(u.id);
                               }
                             }}
-                            className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition-colors"
-                            title="Remove User"
+                            className="p-2 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-950/40"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
                         ) : null}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
     </div>
   );
 };
+
 export default UserManagementView;

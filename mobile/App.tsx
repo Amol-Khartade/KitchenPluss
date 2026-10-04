@@ -64,11 +64,11 @@ function AppContent() {
       {/* Top Station Header with Hotel / Client Organization Info */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.headerBrand}>
-            Kitchen<Text style={styles.headerBrandAccent}>Pulse</Text>
-          </Text>
-          <View style={styles.orgBadge}>
-            <Text style={styles.orgBadgeText} numberOfLines={1}>
+          <View style={styles.brandStack}>
+            <Text style={styles.headerBrand}>
+              Kitchen<Text style={styles.headerBrandAccent}>Pulse</Text>
+            </Text>
+            <Text style={styles.headerOrgText} numberOfLines={1}>
               🏨 {organization?.name || "Kitchen Operations"}
             </Text>
           </View>
@@ -107,25 +107,30 @@ function AppContent() {
         {activeTab === "waste" && <WasteFormScreen />}
       </View>
 
-      {/* Bottom Tab Bar */}
-      <View style={styles.tabBar}>
-        {TABS.map((tab) => (
-          <Pressable
-            key={tab.id}
-            style={[styles.tab, activeTab === tab.id && styles.activeTab]}
-            onPress={() => setActiveTab(tab.id)}
-          >
-            <Text style={styles.tabIcon}>{tab.icon}</Text>
-            <Text
-              style={[
-                styles.tabLabel,
-                activeTab === tab.id && styles.activeTabLabel,
-              ]}
-            >
-              {tab.label}
-            </Text>
-          </Pressable>
-        ))}
+      {/* Floating Bottom Frosted Glass Dock */}
+      <View style={styles.tabBarWrapper}>
+        <View style={styles.tabBar}>
+          {TABS.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <Pressable
+                key={tab.id}
+                style={[styles.tab, isActive && styles.activeTab]}
+                onPress={() => setActiveTab(tab.id)}
+              >
+                <Text style={styles.tabIcon}>{tab.icon}</Text>
+                <Text
+                  style={[
+                    styles.tabLabel,
+                    isActive && styles.activeTabLabel,
+                  ]}
+                >
+                  {tab.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
     </View>
   );
@@ -144,49 +149,47 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#060910",
+    backgroundColor: "#070B14",
   },
   container: {
     flex: 1,
-    backgroundColor: "#0a0e17",
+    backgroundColor: "#070B14",
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: "#0d131f",
+    paddingVertical: 12,
+    backgroundColor: "rgba(13, 20, 36, 0.85)",
     borderBottomWidth: 1,
-    borderBottomColor: "#1e293b",
+    borderBottomColor: "rgba(255, 255, 255, 0.08)",
   },
   headerLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
     flex: 1,
+  },
+  brandStack: {
+    flexDirection: "column",
+    justifyContent: "center",
   },
   headerBrand: {
     fontSize: 16,
     fontWeight: "900",
     color: "#f8fafc",
+    letterSpacing: -0.3,
+    lineHeight: 18,
   },
   headerBrandAccent: {
     color: "#38bdf8",
   },
-  orgBadge: {
-    backgroundColor: "rgba(56, 189, 248, 0.15)",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: "rgba(56, 189, 248, 0.3)",
-    maxWidth: 160,
-  },
-  orgBadgeText: {
+  headerOrgText: {
     fontSize: 10,
     fontWeight: "700",
     color: "#38bdf8",
+    marginTop: 2,
+    maxWidth: 180,
   },
   headerRight: {
     flexDirection: "row",
@@ -194,12 +197,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   userRoleBadge: {
-    backgroundColor: "#131b2e",
+    backgroundColor: "rgba(255, 255, 255, 0.06)",
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 6,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#1e293b",
+    borderColor: "rgba(255, 255, 255, 0.12)",
   },
   userRoleText: {
     fontSize: 10,
@@ -207,10 +210,10 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   logoutBtn: {
-    backgroundColor: "rgba(225, 29, 72, 0.15)",
+    backgroundColor: "rgba(225, 29, 72, 0.12)",
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 6,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: "rgba(225, 29, 72, 0.3)",
   },
@@ -220,54 +223,76 @@ const styles = StyleSheet.create({
     color: "#fda4af",
   },
   alertBanner: {
-    backgroundColor: "#7f1d1d",
+    backgroundColor: "rgba(159, 18, 57, 0.8)",
     paddingHorizontal: 16,
     paddingVertical: 8,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(244, 63, 94, 0.3)",
   },
   alertText: {
-    color: "#fecaca",
+    color: "#ffe4e6",
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: "700",
   },
   alertDetail: {
-    color: "#fca5a5",
+    color: "#fecdd3",
     fontSize: 11,
   },
   screen: {
     flex: 1,
+    paddingBottom: Platform.OS === "ios" ? 75 : 65,
+  },
+  tabBarWrapper: {
+    position: "absolute",
+    bottom: Platform.OS === "ios" ? 18 : 10,
+    left: 16,
+    right: 16,
+    alignItems: "center",
   },
   tabBar: {
     flexDirection: "row",
-    backgroundColor: "#0d131f",
-    borderTopWidth: 1,
-    borderTopColor: "#1e293b",
-    paddingBottom: Platform.OS === "ios" ? 16 : 8,
-    paddingTop: 8,
+    backgroundColor: "rgba(13, 20, 36, 0.92)",
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.15)",
+    padding: 5,
+    width: "100%",
+    maxWidth: 420,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 8,
   },
   tab: {
     flex: 1,
+    flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 4,
+    justifyContent: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    borderRadius: 18,
+    gap: 6,
+    minHeight: 44,
   },
   activeTab: {
-    borderTopWidth: 2,
-    borderTopColor: "#38bdf8",
-    marginTop: -2,
+    backgroundColor: "rgba(56, 189, 248, 0.18)",
+    borderWidth: 1,
+    borderColor: "rgba(56, 189, 248, 0.4)",
   },
   tabIcon: {
-    fontSize: 18,
-    marginBottom: 2,
+    fontSize: 15,
   },
   tabLabel: {
-    fontSize: 10,
-    color: "#64748b",
-    fontWeight: "500",
+    fontSize: 11,
+    color: "#94a3b8",
+    fontWeight: "600",
   },
   activeTabLabel: {
     color: "#38bdf8",
-    fontWeight: "700",
+    fontWeight: "800",
   },
 });
