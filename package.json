@@ -25,6 +25,7 @@
     "test:mcp": "cd backend && npx tsx scripts/test-mcp-servers.ts",
     "test:ws": "cd backend && npx tsx scripts/test-ws-and-ai.ts",
     "test:all": "npm run test:mcp && npm run test:ws",
+    "sync:phases": "python scripts/sync_phases.py",
     "install:all": "npm install && cd mobile && npm install"
   }
 }

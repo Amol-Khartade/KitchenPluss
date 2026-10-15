@@ -40,6 +40,80 @@ Implement multi-tenant client/organization isolation (e.g., hotel or restaurant 
 
 ---
 
+## 🚀 KitchenPluss AI Integration 4-Week Roadmap (Synced with Excel)
+> Source: [`docs/KitchenPluss AI Integration Plan.xlsx`](docs/KitchenPluss%20AI%20Integration%20Plan.xlsx)
+
+
+### Week 1: Python Microservice & Kitchen Data Ingestion
+- [x] **Day 1: Scaffold Python/FastAPI service** **[Completed]**
+  - *Task*: Scaffold services/ai-agent/ directory with Python, FastAPI, and Uvicorn. Connect it to the existing docker-compose.yml.
+  - *Manager Standup Update*: "I containerized and scaffolded a dedicated Python/FastAPI AI microservice within our Docker compose stack to isolate LLM agent orchestration from the core API."
+- [ ] **Day 2: Pydantic & Data Validation** 
+  - *Task*: Create Pydantic models matching existing TypeScript DB models (tickets, ingredients, recipes, prep_logs).
+  - *Manager Standup Update*: "I set up strict Pydantic schema validation matching our existing PostgreSQL database schema to prepare for agent state management."
+- [ ] **Day 3: Gemini SDK Integration** 
+  - *Task*: Integrate Gemini 1.5 Pro / Flash via the Google GenAI SDK with structured outputs.
+  - *Manager Standup Update*: "I established direct Gemini SDK integration in the AI microservice with structured JSON output enforcement."
+- [ ] **Day 4: Database Connection (SQLAlchemy)** 
+  - *Task*: Connect the Python service to your PostgreSQL database using SQLAlchemy/asyncpg to query real inventory tables.
+  - *Manager Standup Update*: "I enabled read access from the AI microservice to our production PostgreSQL database to allow live state inspection."
+- [ ] **Day 5: SSE Streaming** 
+  - *Task*: Expose a streaming SSE endpoint (/api/agent/stream) that the React Native app can listen to for real-time recommendations.
+  - *Manager Standup Update*: "I created a Server-Sent Events (SSE) streaming endpoint in the AI service to deliver real-time token streaming to the mobile client."
+
+### Week 2: Recipe & SOP Vector Database (RAG over Recipes)
+- [ ] **Day 6: pgvector Setup** 
+  - *Task*: Enable the pgvector extension in your existing PostgreSQL database (01_init.sql).
+  - *Manager Standup Update*: "I enabled the pgvector extension on our PostgreSQL instance to support in-database vector embeddings without needing third-party vector DBs."
+- [ ] **Day 7: Document Embedding Pipeline** 
+  - *Task*: Build an embedding pipeline to index recipe instructions, allergen warnings, and prep procedures.
+  - *Manager Standup Update*: "I built an automated embedding script that converts recipe steps and allergen tables into vector embeddings."
+- [ ] **Day 8: Vector Similarity Search** 
+  - *Task*: Implement vector similarity search (cosine distance) to answer queries like "How do I prep garlic confit safely?".
+  - *Manager Standup Update*: "I implemented semantic similarity search directly in Postgres to match kitchen queries against stored prep protocols."
+- [ ] **Day 9: RAG Pipeline** 
+  - *Task*: Assemble the complete RAG pipeline with relevance re-ranking and source attribution.
+  - *Manager Standup Update*: "I completed the RAG retrieval pipeline, grounding AI responses strictly in our validated kitchen standard operating procedures."
+- [ ] **Day 10: API & Mobile Exposure** 
+  - *Task*: Wire the RAG endpoint into the mobile PrepSheetScreen.tsx so chefs can ask real-time questions about recipes.
+  - *Manager Standup Update*: "I exposed the RAG engine via REST and tested context retrieval for kitchen prep procedures."
+
+### Week 3: Multi-Agent Workflows with LangGraph
+- [ ] **Day 11: LangGraph Basics & State** 
+  - *Task*: Install LangGraph and design the Kitchen State Graph: ChefQueryState containing conversation context, kitchen ID, and tool calls.
+  - *Manager Standup Update*: "I began designing our agentic state machine using LangGraph to handle multi-step kitchen logic."
+- [ ] **Day 12: Inventory Agent Node** 
+  - *Task*: Implement node that uses existing supplier-mcp logic to check ingredient levels and flag impending stockouts.
+  - *Manager Standup Update*: "I implemented the Inventory Agent node, enabling autonomous checks against low-stock thresholds."
+- [ ] **Day 13: Supplier Order Agent Node** 
+  - *Task*: Automatically drafts a purchase order if an ingredient drops below the safety margin, utilizing tool calls.
+  - *Manager Standup Update*: "I added an automated supplier ordering tool that drafts purchase orders when stock reaches critical thresholds."
+- [ ] **Day 14: Supervisor/Router Node** 
+  - *Task*: An orchestrator LLM that inspects kitchen events and routes to either Prep Optimization or Supplier Restock.
+  - *Manager Standup Update*: "I built a supervisor agent graph that routes events between inventory management, prep optimization, and order fulfillment."
+- [ ] **Day 15: State Persistence** 
+  - *Task*: Implement state persistence using Postgres checkpointer (langgraph-checkpoint-postgres).
+  - *Manager Standup Update*: "I added PostgreSQL checkpointers to our agent workflows, ensuring conversations and active runs survive service restarts."
+
+### Week 4: Mobile & Web Integration (Connecting the React Native Stack)
+- [ ] **Day 16: Socket.IO Integration** 
+  - *Task*: Connect the AI Agent alerts to your existing Socket.IO server (backend/src/sockets/index.ts).
+  - *Manager Standup Update*: "I linked agent-generated notifications into our Socket.IO server to broadcast automated kitchen alerts in real time."
+- [ ] **Day 17: Mobile Streaming UI** 
+  - *Task*: Hook the agent streaming endpoint into mobile/src/screens/PrepSheetScreen.tsx and KitchenQueueScreen.tsx.
+  - *Manager Standup Update*: "I connected the mobile app to our AI agent stream, displaying real-time prep guidance directly on the kitchen queue."
+- [ ] **Day 18: React Native Bottom Sheets** 
+  - *Task*: Add an "AI Recommendations" sheet in the mobile app using React Native Reanimated to approve or edit draft supplier orders.
+  - *Manager Standup Update*: "I created a bottom sheet interface in React Native for chefs to review and approve AI-generated supplier orders."
+- [ ] **Day 19: E2E Integration Testing** 
+  - *Task*: Simulate incoming tickets -> Agent flags low inventory -> Agent queries supplier prices -> Notifies mobile UI.
+  - *Manager Standup Update*: "I ran an end-to-end integration test validating the workflow from ticket creation to autonomous supplier drafting."
+- [ ] **Day 20: Dockerization & Deployment** 
+  - *Task*: Dockerize the complete multi-container setup (Node backend + Python Agent service + Postgres/pgvector + Web client).
+  - *Manager Standup Update*: "I containerized the full stack with Docker Compose and prepared a live demo showing our agentic kitchen operations in action."
+
+---
+
 ## 📋 Phased Task List
 
 ### Phase 1: Database Schema & Multi-Tenancy Foundation
