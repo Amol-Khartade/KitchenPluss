@@ -12,6 +12,14 @@ dist/
 *.tsbuildinfo
 *.js.map
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+venv/
+.venv/
+
 # Expo / React Native
 mobile/.expo/
 mobile/android/

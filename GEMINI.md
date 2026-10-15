@@ -113,6 +113,18 @@ KitchenPluss/
 │       └── src/index.ts           # Tools: get_supplier_pricing, get_supplier_catalog,
 │                                  #        create_purchase_order, check_supplier_availability
 │
+├── services/
+│   └── ai-agent/                  # Python FastAPI AI Agent Microservice (Port 8000)
+│       ├── Dockerfile             # Container configuration with Uvicorn
+│       ├── requirements.txt       # FastAPI, Uvicorn, Pydantic, HTTPX
+│       ├── test_agent.py          # Endpoint & schema verification test
+│       └── app/
+│           ├── main.py            # FastAPI entrypoint, CORS & routers
+│           ├── config.py          # Settings & ENV variables
+│           ├── routers/           # /health, /api/v1/agent/forecast, /inventory-eval
+│           ├── schemas/           # Pydantic DTO models
+│           └── services/          # Core forecasting & inventory reasoning logic
+│
 ├── docker-compose.yml             # Postgres (port 5432) & multi-service deployment
 ├── .env.example                   # Environment configuration template
 ├── package.json                   # Root monorepo scripts
@@ -126,6 +138,7 @@ KitchenPluss/
 | Layer | Technologies & Libraries |
 | :--- | :--- |
 | **Backend API** | Node.js (>=20.0), Express 4, TypeScript 5.7, `tsx`, `pg` (PostgreSQL client), `jsonwebtoken`, `bcryptjs`, `cors`, `dotenv`, `zod` |
+| **Python AI Agent** | Python (>=3.11), FastAPI, Uvicorn, Pydantic v2, `pydantic-settings`, `httpx` (Port 8000) |
 | **Real-Time** | `socket.io` (v4.8) on server, `socket.io-client` on web & mobile |
 | **Web Frontend** | React 18, Vite 5, Tailwind CSS 3.4, Lucide React, `@tanstack/react-query` v5, Dark OLED theme (`ui-ux-pro-max`) |
 | **Mobile App** | Expo SDK 57, React Native 0.86, React 19, `zustand` v5, `@tanstack/react-query` v5, `react-native-reanimated` v4, `zod` |
@@ -226,6 +239,7 @@ npx tsx backend/scripts/verify-multi-tenant-rbac.ts
 # Start development servers
 npm run dev:backend       # Backend API & Sockets -> http://localhost:5000
 npm run dev:web           # Web Command Center    -> http://localhost:3000
+npm run dev:ai-agent      # Python AI Agent       -> http://localhost:8000
 npm run dev:mobile        # Expo React Native App -> http://localhost:8081
 
 # Production build check
