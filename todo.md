@@ -48,9 +48,9 @@ Implement multi-tenant client/organization isolation (e.g., hotel or restaurant 
 - [x] **Day 1: Scaffold Python/FastAPI service** **[Completed]**
   - *Task*: Scaffold services/ai-agent/ directory with Python, FastAPI, and Uvicorn. Connect it to the existing docker-compose.yml.
   - *Manager Standup Update*: "I containerized and scaffolded a dedicated Python/FastAPI AI microservice within our Docker compose stack to isolate LLM agent orchestration from the core API."
-- [ ] **Day 2: Pydantic & Data Validation** 
-  - *Task*: Create Pydantic models matching existing TypeScript DB models (tickets, ingredients, recipes, prep_logs).
-  - *Manager Standup Update*: "I set up strict Pydantic schema validation matching our existing PostgreSQL database schema to prepare for agent state management."
+- [/] **Day 2: Next.js Full-Stack & DRY Shared Core** **[In Progress]**
+  - *Task*: Initialize Next.js 15 App Router in web/ and extract @kitchenpulse/shared monorepo package (Zod schemas, DTOs, types) to eliminate code duplication across web and mobile.
+  - *Manager Standup Update*: "I migrated web to Next.js 15 App Router with full-stack Route Handlers and extracted @kitchenpulse/shared to eliminate duplicate types across web and mobile."
 - [ ] **Day 3: Gemini SDK Integration** 
   - *Task*: Integrate Gemini 1.5 Pro / Flash via the Google GenAI SDK with structured outputs.
   - *Manager Standup Update*: "I established direct Gemini SDK integration in the AI microservice with structured JSON output enforcement."
@@ -96,9 +96,9 @@ Implement multi-tenant client/organization isolation (e.g., hotel or restaurant 
   - *Manager Standup Update*: "I added PostgreSQL checkpointers to our agent workflows, ensuring conversations and active runs survive service restarts."
 
 ### Week 4: Mobile & Web Integration (Connecting the React Native Stack)
-- [ ] **Day 16: Next.js Full-Stack & Shared Core** 
-  - *Task*: Initialize Next.js 15 App Router and extract packages/shared core (Zod schemas, types, DTOs) to eliminate code duplication across web and mobile.
-  - *Manager Standup Update*: "I initialized Next.js 15 App Router with unified API routes and extracted a shared monorepo core package for 100% DRY validation across web and mobile."
+- [ ] **Day 16: KDS WebSocket Optimization & Mobile Sync** 
+  - *Task*: Optimize Socket.IO channels for sub-50ms latency across kitchen stations and configure offline reconnect buffers for tablets.
+  - *Manager Standup Update*: "I optimized the real-time KDS Socket.IO channels for sub-50ms latency and configured offline event queuing for kitchen tablets."
 - [ ] **Day 17: Unified API Routes & Socket Server** 
   - *Task*: Migrate Express API routes to Next.js Route Handlers (app/api/*) and attach custom Socket.IO server.ts for live KDS real-time events.
   - *Manager Standup Update*: "I migrated backend routes into Next.js Route Handlers, serving both Web Server Components and the mobile Expo tablet app from a single API with live Socket.IO."

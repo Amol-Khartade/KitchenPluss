@@ -12,13 +12,25 @@ def update_plan():
     wb = openpyxl.load_workbook(EXCEL_PATH)
     sheet1 = wb["Sheet1"]
 
-    # 1. Update Week 4 in Sheet1 (Rows 22-26) to reflect Next.js Full-Stack + Shared Monorepo Core
+    # 1. Update Day 2 (Row 8) to reflect Next.js Full-Stack & Shared Monorepo Core execution today
+    day2_data = {
+        "focus": "Next.js Full-Stack & DRY Shared Core",
+        "task": "Initialize Next.js 15 App Router in web/ and extract @kitchenpulse/shared monorepo package (Zod schemas, DTOs, types) to eliminate code duplication across web and mobile.",
+        "standup": "I migrated web to Next.js 15 App Router with full-stack Route Handlers and extracted @kitchenpulse/shared to eliminate duplicate types across web and mobile.",
+        "status": "In Progress"
+    }
+    sheet1.cell(row=8, column=3).value = day2_data["focus"]
+    sheet1.cell(row=8, column=4).value = day2_data["task"]
+    sheet1.cell(row=8, column=5).value = day2_data["standup"]
+    sheet1.cell(row=8, column=6).value = day2_data["status"]
+
+    # 2. Update Week 4 in Sheet1 (Rows 22-26)
     week4_updates = {
         22: {
             "day": "Day 16",
-            "focus": "Next.js Full-Stack & Shared Core",
-            "task": "Initialize Next.js 15 App Router and extract packages/shared core (Zod schemas, types, DTOs) to eliminate code duplication across web and mobile.",
-            "standup": "I initialized Next.js 15 App Router with unified API routes and extracted a shared monorepo core package for 100% DRY validation across web and mobile.",
+            "focus": "KDS WebSocket Optimization & Mobile Sync",
+            "task": "Optimize Socket.IO channels for sub-50ms latency across kitchen stations and configure offline reconnect buffers for tablets.",
+            "standup": "I optimized the real-time KDS Socket.IO channels for sub-50ms latency and configured offline event queuing for kitchen tablets.",
         },
         23: {
             "day": "Day 17",
@@ -170,8 +182,15 @@ def update_plan():
     arch_sheet.column_dimensions["D"].width = 38
     arch_sheet.column_dimensions["E"].width = 24
 
-    wb.save(EXCEL_PATH)
-    print("✅ Successfully updated KitchenPluss AI Integration Plan.xlsx with Next.js Full-Stack Plan!")
+    try:
+        wb.save(EXCEL_PATH)
+        print("✅ Successfully updated KitchenPluss AI Integration Plan.xlsx with Day 2 Next.js Full-Stack Plan!")
+    except PermissionError:
+        pending_path = EXCEL_PATH.with_suffix(".pending.xlsx")
+        wb.save(pending_path)
+        print(f"⚠️ Notice: 'KitchenPluss AI Integration Plan.xlsx' is currently open in Excel.")
+        print(f"   Saved staged changes to: {pending_path}")
+        print("   Please close Excel and run 'npm run sync:phases' or 'python scripts/update_nextjs_plan.py' to overwrite.")
 
 if __name__ == "__main__":
     update_plan()
