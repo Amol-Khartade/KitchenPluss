@@ -1,12 +1,48 @@
 // ============================================================
-// KitchenPulse Mobile — Authentication Store (Zustand + AsyncStorage)
+// KitchenPulse Mobile — Authentication Store (Zustand + MMKV)
+// High-performance synchronous C++ storage with web fallback
 // ============================================================
 
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persist, createJSONStorage, StateStorage } from 'zustand/middleware';
+import { Platform } from 'react-native';
+import { createMMKV, MMKV } from 'react-native-mmkv';
 import { User, Organization, AuthResponse } from '../types';
 import { api, setAuthToken } from '../api/client';
+
+let mmkvInstance: MMKV | null = null;
+if (Platform.OS !== 'web') {
+  try {
+    mmkvInstance = createMMKV({ id: 'kitchenpulse-auth-storage' });
+  } catch (err) {
+    console.warn('[useAuthStore] MMKV native initialization fallback:', err);
+  }
+}
+
+export const mmkvStateStorage: StateStorage = {
+  setItem: (name: string, value: string) => {
+    if (mmkvInstance) {
+      mmkvInstance.set(name, value);
+    } else if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(name, value);
+    }
+  },
+  getItem: (name: string) => {
+    if (mmkvInstance) {
+      return mmkvInstance.getString(name) ?? null;
+    } else if (typeof window !== 'undefined' && window.localStorage) {
+      return window.localStorage.getItem(name);
+    }
+    return null;
+  },
+  removeItem: (name: string) => {
+    if (mmkvInstance) {
+      mmkvInstance.remove(name);
+    } else if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.removeItem(name);
+    }
+  },
+};
 
 interface AuthState {
   user: User | null;
@@ -37,7 +73,7 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
       isLoading: false,
-      isHydrated: false,
+      isHydrated: true, // MMKV is synchronous; ready on initial render
 
       setHydrated: (isHydrated: boolean) => set({ isHydrated }),
 
@@ -103,7 +139,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'kitchenpulse_mobile_auth',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => mmkvStateStorage),
       partialize: (state) => ({
         user: state.user,
         organization: state.organization,
@@ -119,4 +155,5 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
 

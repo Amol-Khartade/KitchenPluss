@@ -141,7 +141,7 @@ KitchenPluss/
 | **Python AI Agent** | Python (>=3.11), FastAPI, Uvicorn, Pydantic v2, `pydantic-settings`, `httpx` (Port 8000) |
 | **Real-Time** | `socket.io` (v4.8) on server, `socket.io-client` on web & mobile |
 | **Web Frontend** | React 18, Vite 5, Tailwind CSS 3.4, Lucide React, `@tanstack/react-query` v5, Dark OLED theme (`ui-ux-pro-max`) |
-| **Mobile App** | Expo SDK 57, React Native 0.86, React 19, `zustand` v5, `@tanstack/react-query` v5, `react-native-reanimated` v4, `zod` |
+| **Mobile App** | Expo SDK 57, React Native 0.86, React 19, `zustand` v5, `react-native-mmkv` v4 (synchronous C++ storage), `@tanstack/react-query` v5, `react-native-reanimated` v4, `zod` |
 | **AI & MCP** | Google Gemini SDK (`@google/generative-ai`), `@modelcontextprotocol/sdk` (v1.0), Stdio transports |
 | **Database** | PostgreSQL 16+ (Docker or native Windows service) |
 

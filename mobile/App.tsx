@@ -50,7 +50,7 @@ function AppContent() {
   // Initialize Socket.IO connection at app root
   useSocket();
 
-  // Wait for AsyncStorage rehydration before deciding to show login screen
+  // Wait for MMKV storage rehydration before deciding to show login screen
   if (!isHydrated) {
     return (
       <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
