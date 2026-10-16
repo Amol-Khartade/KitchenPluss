@@ -39,8 +39,8 @@ Here is the summary of today's engineering deliverables and progress across the 
     - **Web**: `checkAuth()` was aggressively wiping local storage upon any transient network delay or backend reload instead of only handling explicit `401`/`403` rejections.
     - **Mobile**: `useAuthStore` was an in-memory Zustand store without native persistence, causing sessions to reset upon every app reload or fast refresh.
   - **Fix Implemented**:
-    - Installed and integrated `@react-native-async-storage/async-storage` with Zustand `persist` middleware in `mobile/src/store/useAuthStore.ts`, restoring JWT Bearer headers and tenant context automatically upon app launch.
-    - Updated `mobile/App.tsx` with an `isHydrated` state guard to eliminate premature auth bounces.
+    - Integrated high-performance `react-native-mmkv` with Zustand `persist` middleware in `mobile/src/store/useAuthStore.ts`, providing synchronous C++ key-value storage with web fallback that restores JWT Bearer headers and tenant context instantly on the initial render cycle.
+    - Added hydration synchronization in `mobile/App.tsx` ensuring zero loading flashes or auth bounces.
     - Refactored `web/src/context/AuthContext.tsx` with optimistic cached session rendering and non-destructive background revalidation, only clearing tokens on explicit `401`/`403` server responses.
     - Extended backend JWT validity to 30 days (`expiresIn: '30d'`) with strict dotenv loading for commercial kitchen tablets.
 - **Database Seeding & Verification**:
