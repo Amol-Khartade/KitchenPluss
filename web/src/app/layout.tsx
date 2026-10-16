@@ -1,7 +1,12 @@
 import React from 'react';
-import type { Metadata } from 'next';
 import './globals.css';
 import { Providers } from './Providers.js';
+
+export interface Metadata {
+  title?: string;
+  description?: string;
+  [key: string]: any;
+}
 
 export const metadata: Metadata = {
   title: 'KitchenPulse — Commercial KDS & Supply Chain Operations',

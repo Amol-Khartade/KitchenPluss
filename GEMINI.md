@@ -1,7 +1,11 @@
 # GEMINI.md — KitchenPulse System Context & Architecture Guide
 
-> **Project Reference for Antigravity & AI Assistants**  
-> **Purpose**: Load this document to understand the full system architecture, multi-tenancy rules, tech stack, file maps, and coding conventions without having to re-scan the entire repository, minimizing token usage on future prompts.
+> 🚨 **CRITICAL DIRECTIVE FOR ANTIGRAVITY (AGY) & AI ASSISTANTS** 🚨  
+> **MANDATORY STEP 0**: **ALWAYS LOAD AND READ THIS `GEMINI.md` FILE FIRST** before reading, searching, exploring, or modifying ANY files in this codebase.  
+> **WHY THIS IS REQUIRED**:  
+> 1. **Single Source of Truth**: This document contains the full architecture, monorepo tree, database schemas, RBAC matrix, shared packages (`@kitchenpulse/shared`), Next.js 15 full-stack setup, and MMKV state conventions.  
+> 2. **Token & Latency Optimization**: Reading this document first avoids blind whole-repo scans, cuts unnecessary file greps, and reduces token consumption by up to 80%.  
+> 3. **Deterministic Development**: Never guess directory structures, port assignments, or data contracts. Consult the exact paths and interfaces documented here first.
 
 ---
 
@@ -13,8 +17,11 @@
 - **Real-Time KDS (Kitchen Display System)**: Multi-station kanban (`QUEUE` → `FIRING` → `COMPLETED`) with live wait clocks (`T+ mm:ss`) and automatic recipe Bill-of-Materials (BOM) inventory deductions upon completion.
 - **Strict Multi-Tenant Client Isolation**: Full multi-tenant partitioning for hotel & restaurant groups (e.g., Grand Palace Hotel, Bistro Bella Napoli). Every query and socket channel is strictly scoped to `organization_id`.
 - **Role-Based Access Control (RBAC)**: Strict permission tiers (`Owner`, `Admin`, `Executive Chef`, `Line Cook`/`Staff`) controlling access to financial costs, profit margins, team management, and purchasing.
+- **DRY Monorepo Architecture (`@kitchenpulse/shared`)**: Single source of truth in `packages/shared/` containing shared TypeScript interfaces, Zod schemas, and calculation utilities consumed across web, mobile, and backend.
+- **Next.js 15 Full-Stack App Router**: High-performance web command center supporting Next.js 15 App Router (`web/src/app/`) with unified API routes/rewrites and dual-engine Vite development compatibility.
+- **High-Performance Synchronous Mobile State**: Expo SDK 57 tablet app powered by `react-native-mmkv` v4 + `react-native-nitro-modules` for ultra-fast C++ synchronous persistent auth and session persistence.
 - **Model Context Protocol (MCP)**: Twin MCP servers (`postgres-mcp` and `supplier-mcp`) connecting AI agents directly to Postgres databases and simulated wholesale supplier APIs via Stdio transport.
-- **Gemini AI Operations**: Nightly prep forecasting based on day-of-week historical waste patterns, and autonomous supplier PO generation during stock shortfalls.
+- **Autonomous Python AI Microservice (`services/ai-agent/`)**: FastAPI microservice dedicated to Gemini forecasting, inventory reasoning, and mathematical optimizations.
 
 ---
 
@@ -22,8 +29,19 @@
 
 ```
 KitchenPluss/
+├── packages/
+│   └── shared/                    # DRY Monorepo Core Package (@kitchenpulse/shared)
+│       ├── package.json           # Unified ESM/CJS exports, Zod dependencies
+│       ├── tsconfig.json          # Strict TS declaration emit
+│       ├── dist/                  # Compiled index.js & index.d.ts
+│       └── src/
+│           ├── index.ts           # Barrel export for types, schemas & calculations
+│           ├── types.ts           # Unified interfaces (LiveTicket, Ingredient, Recipe, User, etc.)
+│           ├── schemas.ts         # Zod schemas (ticketSchema, scrapLogSchema, etc.)
+│           └── calculations.ts    # Single-source food cost, waste %, safety line formulas
+│
 ├── backend/                       # Node.js + Express + Socket.IO API Server (Port 5000)
-│   ├── package.json               # Express, @google/generative-ai, @modelcontextprotocol/sdk, pg, zod, jsonwebtoken
+│   ├── package.json               # Express, pg, zod, @kitchenpulse/shared, Socket.io
 │   ├── tsconfig.json
 │   ├── scripts/                   # Verification and test runners
 │   │   ├── runMigration.ts        # Manual migration execution
@@ -33,7 +51,7 @@ KitchenPluss/
 │   │   └── verify-multi-tenant-rbac.ts # End-to-end multi-tenant isolation & RBAC suite
 │   └── src/
 │       ├── index.ts               # Server entry point, Socket.io initialization, route mounting
-│       ├── types/index.ts         # Shared TypeScript interfaces, enums, DTOs
+│       ├── types/index.ts         # Re-exports from @kitchenpulse/shared + backend extensions
 │       ├── middleware/auth.ts     # JWT verify token & role-guard middleware (`requireRole`)
 │       ├── db/
 │       │   ├── pool.ts            # pg.Pool connection singleton
@@ -61,17 +79,23 @@ KitchenPluss/
 │           ├── inventoryAlert.ts  # Auto PO generator on low-stock triggers
 │           └── routes.ts          # /api/ai/prep-optimization & /api/ai/inventory-alert
 │
-├── web/                           # Command Center Web App (Port 3000, Vite + React 18)
-│   ├── package.json               # React 18, Vite, Tailwind CSS, TanStack Query v5, Lucide
-│   ├── vite.config.ts
+├── web/                           # Next.js 15 Full-Stack & Command Center (Port 3000)
+│   ├── package.json               # Next.js 15, React 18/19, Tailwind CSS, TanStack Query v5, Lucide
+│   ├── next.config.mjs            # Next.js config with @kitchenpulse/shared transpilation & rewrites
+│   ├── vite.config.ts             # Dual-engine Vite compatibility
 │   ├── tailwind.config.js         # Dark OLED (#090D16) data-dense design tokens
 │   └── src/
-│       ├── main.tsx
+│       ├── app/                   # Next.js 15 App Router root
+│       │   ├── layout.tsx         # Root layout with fonts, metadata & Providers wrapper
+│       │   ├── page.tsx           # Client page entrypoint with AuthGuard & views
+│       │   ├── globals.css        # Tailwind directives & OLED design token classes
+│       │   └── Providers.tsx      # QueryClientProvider, AuthProvider, Toast providers
+│       ├── main.tsx               # Vite entrypoint (dual development compatibility)
 │       ├── App.tsx                # Auth guard, top navigation tab controller, global queries
 │       ├── context/AuthContext.tsx# Authentication state provider & session persistence
 │       ├── api/client.ts          # Typed REST API client with Bearer token injection
 │       ├── hooks/useSocket.ts     # Socket.io listener with organization room subscription
-│       ├── types/index.ts         # Web frontend TypeScript types
+│       ├── types/index.ts         # Re-exports from @kitchenpulse/shared
 │       └── components/
 │           ├── AuthPortal.tsx     # Full-screen login & register portal with org selection
 │           ├── Header.tsx         # Hotel branding badge, role pills, tab switcher
@@ -85,16 +109,16 @@ KitchenPluss/
 │           └── StationFilter.tsx  # Station selector pills (ALL, Grill, Sauté, etc.)
 │
 ├── mobile/                        # Kitchen Tablet App (Port 8081, Expo SDK 57 + RN 0.86)
-│   ├── package.json               # Expo SDK ~57.0.26, React Native 0.86, Zustand 5, TanStack Query 5
+│   ├── package.json               # Expo SDK ~57.0.26, React Native 0.86, react-native-mmkv, nitro
 │   ├── app.json / app.config.ts
 │   ├── App.tsx                    # Mobile root, strict auth guard, top status header, tabs
 │   └── src/
-│       ├── store/useAuthStore.ts  # Zustand store for user, organization & JWT
+│       ├── store/useAuthStore.ts  # MMKV synchronous C++ persistent storage for user & token
 │       ├── store/useKitchenStore.ts# Zustand store for tickets & live stock alerts
 │       ├── api/client.ts          # Axios/fetch client attaching Bearer token
 │       ├── hooks/useSocket.ts     # Mobile Socket.IO listener for `org:${orgId}` events
 │       ├── hooks/useQueries.ts    # TanStack Query wrappers for mobile
-│       ├── types/index.ts         # Mobile TypeScript types
+│       ├── types/index.ts         # Re-exports from @kitchenpulse/shared
 │       ├── components/tickets/TicketCard.tsx # Reanimated interactive ticket card
 │       └── screens/
 │           ├── AuthScreen.tsx     # Mobile login/signup + 1-tap demo credentials
@@ -125,10 +149,13 @@ KitchenPluss/
 │           ├── schemas/           # Pydantic DTO models
 │           └── services/          # Core forecasting & inventory reasoning logic
 │
+├── docs/
+│   └── KitchenPluss AI Integration Plan.xlsx # Multi-phase AI roadmap synced with todo.md
 ├── docker-compose.yml             # Postgres (port 5432) & multi-service deployment
 ├── .env.example                   # Environment configuration template
 ├── package.json                   # Root monorepo scripts
-└── GEMINI.md                      # This architecture & system guide file
+├── todo.md                        # Active sprint tasks & manager standup logs
+└── GEMINI.md                      # Mandatory project context & architecture guide (LOAD FIRST)
 ```
 
 ---
@@ -137,11 +164,12 @@ KitchenPluss/
 
 | Layer | Technologies & Libraries |
 | :--- | :--- |
+| **Shared Core** | `@kitchenpulse/shared` (TypeScript 5.7, Zod v3, unified DTOs, calculations & validation schemas) |
+| **Web Frontend** | Next.js 15 (App Router), React 18/19, Vite 5 dual-engine, Tailwind CSS 3.4, Lucide React, `@tanstack/react-query` v5, Dark OLED theme (`ui-ux-pro-max`) |
+| **Mobile App** | Expo SDK 57, React Native 0.86, React 19, `react-native-mmkv` v4 + `react-native-nitro-modules` (synchronous C++ storage), `zustand` v5, `@tanstack/react-query` v5, `react-native-reanimated` v4, `zod` |
 | **Backend API** | Node.js (>=20.0), Express 4, TypeScript 5.7, `tsx`, `pg` (PostgreSQL client), `jsonwebtoken`, `bcryptjs`, `cors`, `dotenv`, `zod` |
 | **Python AI Agent** | Python (>=3.11), FastAPI, Uvicorn, Pydantic v2, `pydantic-settings`, `httpx` (Port 8000) |
 | **Real-Time** | `socket.io` (v4.8) on server, `socket.io-client` on web & mobile |
-| **Web Frontend** | React 18, Vite 5, Tailwind CSS 3.4, Lucide React, `@tanstack/react-query` v5, Dark OLED theme (`ui-ux-pro-max`) |
-| **Mobile App** | Expo SDK 57, React Native 0.86, React 19, `zustand` v5, `react-native-mmkv` v4 (synchronous C++ storage), `@tanstack/react-query` v5, `react-native-reanimated` v4, `zod` |
 | **AI & MCP** | Google Gemini SDK (`@google/generative-ai`), `@modelcontextprotocol/sdk` (v1.0), Stdio transports |
 | **Database** | PostgreSQL 16+ (Docker or native Windows service) |
 
@@ -232,6 +260,12 @@ npm run install:all
 # Database seeding (Resets and populates multi-tenant demo data)
 npm run seed
 
+# Build core shared package first
+npm run build:shared
+
+# Production build check (compiles @kitchenpulse/shared, backend TS, and web)
+npm run build:all
+
 # Run verification test suites (MCP, WebSocket, Multi-tenant RBAC)
 npm run test:all
 npx tsx backend/scripts/verify-multi-tenant-rbac.ts
@@ -241,9 +275,6 @@ npm run dev:backend       # Backend API & Sockets -> http://localhost:5000
 npm run dev:web           # Web Command Center    -> http://localhost:3000
 npm run dev:ai-agent      # Python AI Agent       -> http://localhost:8000
 npm run dev:mobile        # Expo React Native App -> http://localhost:8081
-
-# Production build check
-npm run build:all
 ```
 
 ---
@@ -252,14 +283,50 @@ npm run build:all
 
 When modifying this repository, adhere strictly to these engineering standards:
 
-1. **Token Efficiency**: Reference file paths and line ranges directly without dumping whole files. Use the structure in this `GEMINI.md` to target relevant files immediately.
-2. **Tenant Isolation**: Never bypass `organization_id`. Any new table must have `organization_id UUID REFERENCES organizations(id)` and any new API route must extract `req.user.organizationId` and filter queries accordingly.
-3. **State Management Division**:
+1. **MANDATORY FIRST STEP — TOKEN OPTIMIZATION**:
+   - **Always read `GEMINI.md` FIRST** at the beginning of any session or prompt.
+   - Do NOT run blind file tree searches, greps, or full-file reads across `web/`, `mobile/`, or `backend/` before checking `GEMINI.md`.
+   - Reference exact file paths and line ranges directly to conserve context window tokens.
+2. **Tenant Isolation**:
+   - Never bypass `organization_id`. Any new table must have `organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE`.
+   - Any new API route must extract `req.user.organizationId` and filter all queries and mutations accordingly.
+3. **DRY & Single Source of Truth**:
+   - Never define duplicate TypeScript interfaces or validation schemas inside `web/src/types/index.ts`, `mobile/src/types/index.ts`, or `backend/src/types/index.ts`.
+   - All shared data structures, statuses, schemas, and calculations live in `packages/shared/src/` (`@kitchenpulse/shared`).
+   - If an entity schema changes, update `packages/shared/src/`, run `npm run build:shared`, and re-export from workspace `types/index.ts`.
+4. **State Management Division**:
    - **TanStack Query (`@tanstack/react-query`)**: Use for all server data (tickets, inventory, recipes, prep logs, supplier orders).
-   - **Zustand (`useAuthStore`, `useKitchenStore`)**: Use exclusively for local client state (active user session, client-side transient UI states, dismissed alert pills).
-4. **Mobile & Expo Guardrails**:
-   - Expo SDK version is **57**. Do not use legacy APIs or manual native code edits in `ios/` or `android/`.
+   - **Zustand (`useAuthStore`, `useKitchenStore`)**: Use exclusively for local client UI state (active user session, client-side transient UI states, dismissed alert pills).
+   - **Mobile Persistence**: Use `react-native-mmkv` with `react-native-nitro-modules` for fast, synchronous C++ storage. Never reintroduce asynchronous `AsyncStorage`.
+5. **Mobile & Expo Guardrails**:
+   - Expo SDK version is **57** (React Native 0.86). Do not use legacy APIs or manual native code edits in `ios/` or `android/`.
    - Never replace `npx expo install` with bare `npm install` when adding Expo packages.
-5. **Design System Consistency**:
+6. **Design System Consistency**:
    - Web adheres to the dark OLED scheme (`#090D16` canvas, `#0E1526` surface, `#1E293B` borders, emerald/amber/rose functional accents).
    - Maintain data-density and high legibility suitable for high-speed commercial kitchen line environments.
+
+---
+
+## 10. DRY Monorepo & Shared Core Standards (`@kitchenpulse/shared`)
+
+### 10.1 Package Architecture
+The `@kitchenpulse/shared` package located at `packages/shared/` serves as the single source of truth across all web, mobile, and backend codebases:
+- **`src/types.ts`**:
+  - `UserRole`: `'Owner' | 'Admin' | 'Executive Chef' | 'Line Cook' | 'Staff'`
+  - `TicketStatus`: `'QUEUE' | 'FIRING' | 'COMPLETED' | 'CANCELLED'`
+  - `LiveTicket`, `Ingredient`, `Recipe`, `RecipeIngredient`, `PrepLog`, `SupplierOrder`, `FoodCostSummary`
+  - `AiPrepItem`, `AiPrepSheetResponse`, `AiInventoryAlert`
+- **`src/schemas.ts`**:
+  - Zod runtime validation schemas: `ticketSchema`, `ticketStatusUpdateSchema`, `scrapLogSchema`, `supplierOrderSchema`, `loginSchema`, `registerSchema`.
+- **`src/calculations.ts`**:
+  - `calculateFoodCostPercentage(portionCost, salePrice)`
+  - `calculateWastePercentage(wasteQty, preppedQty)`
+  - `isStockBelowThreshold(currentStock, minThreshold)`
+  - `calculateStockDeficit(currentStock, minThreshold)`
+
+### 10.2 Workflow for Schema or Entity Updates
+Whenever a data contract, ticket lifecycle status, or calculation formula changes:
+1. Edit `packages/shared/src/types.ts`, `schemas.ts`, or `calculations.ts`.
+2. Run `npm run build:shared` (or `npm run build:all`).
+3. The compiled ESM artifacts in `packages/shared/dist/` are automatically available to `backend`, `web`, and `mobile` via `file:../packages/shared`.
+

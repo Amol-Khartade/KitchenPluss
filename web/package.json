@@ -4,8 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev -p 3000",
-    "build": "next build",
+    "dev": "vite --port 3000 --host",
+    "build": "tsc && vite build",
+    "dev:next": "next dev -p 3000",
+    "build:next": "next build",
     "start": "next start -p 3000",
     "dev:vite": "vite --port 3000 --host",
     "build:vite": "tsc && vite build"

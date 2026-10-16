@@ -7,38 +7,47 @@
 ## 🏗️ Architecture Overview
 
 ```
-┌────────────────────────────────────────────────────────────────────────────────┐
-│               React Native Expo Tablet App  &  React + Vite Web App            │
-│       Mobile (/mobile: Expo SDK 57)   │   Web (/web: React 18, Tailwind, KDS)  │
-│          Zustand, TanStack Query, Reanimated, Zod, Socket.io-client            │
-└───────────────────────────────────────┬────────────────────────────────────────┘
-                                        │ WebSocket (Socket.io) + REST HTTP
-┌───────────────────────────────────────▼────────────────────────────────────────┐
-│                      Node.js Express TypeScript Backend                        │
-│         (/api/tickets, /api/ingredients, /api/food-cost, /api/ai, etc.)        │
-└───────────────────────┬────────────────────────────────────────┬───────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        @kitchenpulse/shared DRY Core Package                          │
+│     Unified TypeScript DTOs, Zod Validation Schemas, Food Cost & Waste Calculations    │
+└───────────────────────┬────────────────────────────────────────┬───────────────────────┘
+                        │                                        │
+┌───────────────────────▼────────────────────────┐ ┌─────────────▼───────────────────────┐
+│     Next.js 15 Full-Stack Command Center       │ │     React Native Kitchen Tablet     │
+│   Web (/web: Next.js App Router, React 18/19,  │ │   Mobile (/mobile: Expo SDK 57, RN) │
+│       Tailwind OLED, TanStack Query, Vite)     │ │   Zustand 5, MMKV (Nitro), Reanimated│
+└───────────────────────┬────────────────────────┘ └─────────────┬───────────────────────┘
+                        │                                        │
+                        │ WebSocket (Socket.io) + REST HTTP      │
+┌───────────────────────▼────────────────────────────────────────▼───────────────────────┐
+│                          Node.js Express TypeScript Backend                           │
+│        (/api/tickets, /api/ingredients, /api/food-cost, /api/auth, /api/users)         │
+└───────────────────────┬────────────────────────────────────────┬───────────────────────┘
                         │                                        │
                 Direct Pool / REST                     AI Orchestrator (Gemini)
                         │                                        │
-┌───────────────────────▼─────┐                        ┌─────────▼───────────────┐
-│ PostgreSQL Database (v16+)  │                        │  MCP Client Connector   │
-│ - Relational Core Tables    │                        └────┬────────────────┬───┘
-│ - Materialized View (Cost)  │                             │ Stdio          │ Stdio
-└─────────────────────────────┘                        ┌────▼────────┐  ┌────▼────────┐
-                                                       │Postgres MCP │  │Supplier MCP │
-                                                       │Server       │  │Server       │
-                                                       └─────────────┘  └─────────────┘
+┌───────────────────────▼─────┐                  ┌───────────────▼───────────────────────┐
+│ PostgreSQL Database (v16+)  │                  │  Python FastAPI AI Agent (/services)  │
+│ - Multi-Tenant Core Tables  │                  │  & MCP Client Connector               │
+│ - Materialized View (Cost)  │                  └───────────┬───────────────┬───────────┘
+└─────────────────────────────┘                              │ Stdio         │ Stdio
+                                                       ┌─────▼───────┐ ┌─────▼───────┐
+                                                       │Postgres MCP │ │Supplier MCP │
+                                                       │Server       │ │Server       │
+                                                       └─────────────┘ └─────────────┘
 ```
 
 ---
 
 ## 📦 Tech Stack (100% Free / Open Source)
 
-- **Web Command Center (`/web`)**: React 18 with Vite, TypeScript, Tailwind CSS, Lucide icons, TanStack Query, Socket.io-client. Features a 3-column Kanban KDS, dynamic order elapsed timers, live pantry stock bars, AI prep sheet drawer, and food cost analytics. Built adhering to `ui-ux-pro-max` dark OLED data-dense design tokens.
-- **Mobile Frontend (`/mobile`)**: React Native with Expo (SDK 57), TypeScript, Zustand (local UI state), TanStack Query (server state), React Native Reanimated (card layout transitions).
-- **Backend API (`/backend`)**: Node.js, Express, TypeScript, Socket.io (bi-directional real-time events).
-- **Database**: PostgreSQL (local Windows service or Dockerized via `docker-compose.yml`).
-- **Protocol Layer (`/mcp-servers`)**: Model Context Protocol (MCP) using official `@modelcontextprotocol/sdk`.
+- **DRY Core (`/packages/shared`)**: Single source of truth `@kitchenpulse/shared` exporting shared TypeScript interfaces (`LiveTicket`, `Ingredient`, `UserRole`, `AiPrepItem`), Zod runtime validation schemas, and unified cost calculation formulas.
+- **Web Command Center (`/web`)**: Next.js 15 App Router & React 18/19 with dual-engine Vite 5 compatibility, TypeScript, Tailwind CSS, Lucide icons, TanStack Query, Socket.io-client. Features a 3-column Kanban KDS, dynamic order elapsed timers, live pantry stock bars, AI prep sheet drawer, and food cost analytics. Built adhering to `ui-ux-pro-max` dark OLED data-dense design tokens.
+- **Mobile Frontend (`/mobile`)**: React Native with Expo (SDK 57), TypeScript, `react-native-mmkv` v4 + `react-native-nitro-modules` (synchronous ultra-fast persistent C++ storage), Zustand 5 (local UI state), TanStack Query 5 (server state), React Native Reanimated (card layout transitions).
+- **Backend API (`/backend`)**: Node.js, Express, TypeScript, Socket.io (bi-directional multi-tenant real-time events), PostgreSQL `pg` pool.
+- **Python AI Agent (`/services/ai-agent`)**: FastAPI microservice (port 8000) running with Uvicorn, Pydantic v2, and direct Gemini forecasting pipelines.
+- **Database**: PostgreSQL 16+ (local Windows service or Dockerized via `docker-compose.yml`).
+- **Protocol Layer (`/mcp-servers`)**: Model Context Protocol (MCP) using official `@modelcontextprotocol/sdk` (Stdio transport).
 - **AI Orchestration (`/backend/src/ai-orchestrator`)**: Google Gemini API SDK (`@google/generative-ai`) with heuristic fallback.
 - **Containerization**: Docker Compose (`docker-compose.yml`) for multi-container deployment.
 
@@ -144,7 +153,8 @@ npm run test:all
 
 ### 3. Build All Projects
 ```bash
-# Compiles backend TypeScript and builds Vite web production assets:
+# Compiles @kitchenpulse/shared, backend TypeScript, and web production assets:
+npm run build:shared
 npm run build:all
 ```
 
@@ -156,6 +166,17 @@ npm run dev:backend
 # Start Web Command Center (Port 3000)
 npm run dev:web
 
+# Start Python FastAPI AI Agent (Port 8000)
+npm run dev:ai-agent
+
 # Start Mobile Tablet App (Port 8081)
 npm run dev:mobile
 ```
+
+---
+
+## 📖 Architecture & AI Assistant Guide
+
+> **Important for AI Assistants & Antigravity (AGY)**:  
+> Always read [`GEMINI.md`](GEMINI.md) **first** before exploring or modifying code. It contains the unified system architecture, database schema, multi-tenant RBAC rules, `@kitchenpulse/shared` contracts, and performance conventions.
+
