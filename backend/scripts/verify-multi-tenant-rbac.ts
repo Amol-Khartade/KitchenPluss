@@ -3,7 +3,6 @@
  */
 
 import pool from '../src/db/pool.js';
-import '../src/index.js'; // Starts server on port 5000 automatically
 
 const PORT = Number(process.env.PORT) || 5000;
 const BASE_URL = `http://localhost:${PORT}`;
@@ -11,8 +10,17 @@ const BASE_URL = `http://localhost:${PORT}`;
 async function runTests() {
   console.log('🧪 Starting End-to-End Multi-Tenant & RBAC Verification Tests...\n');
 
-  // Wait 1.5s for server and initDb to complete startup
-  await new Promise((r) => setTimeout(r, 1500));
+  // Check if server is already running on port
+  let serverRunning = false;
+  try {
+    const res = await fetch(`${BASE_URL}/health`);
+    if (res.ok) serverRunning = true;
+  } catch {}
+
+  if (!serverRunning) {
+    await import('../src/index.js');
+    await new Promise((r) => setTimeout(r, 1500));
+  }
 
   try {
     // ------------------------------------------------------------------ //

@@ -34,6 +34,15 @@ Here is the summary of today's engineering deliverables and progress across the 
   - Diagnosed and resolved `ECONNREFUSED` and `password authentication failed for user "admin"` issues by aligning environment configurations with local native Windows service (`postgresql-x64-18`).
   - Created root and backend `.env` files with proper connection parameters (`DATABASE_URL`).
   - Programmatically created the `kitchenpulse` database and applied all pending migrations in sequence (`01_init.sql`, `02_users.sql`, `03_organizations.sql`).
+- **Cross-Platform Session Persistence Across Refreshes (Web & Mobile)**:
+  - **Root Cause Diagnosed**:
+    - **Web**: `checkAuth()` was aggressively wiping local storage upon any transient network delay or backend reload instead of only handling explicit `401`/`403` rejections.
+    - **Mobile**: `useAuthStore` was an in-memory Zustand store without native persistence, causing sessions to reset upon every app reload or fast refresh.
+  - **Fix Implemented**:
+    - Installed and integrated `@react-native-async-storage/async-storage` with Zustand `persist` middleware in `mobile/src/store/useAuthStore.ts`, restoring JWT Bearer headers and tenant context automatically upon app launch.
+    - Updated `mobile/App.tsx` with an `isHydrated` state guard to eliminate premature auth bounces.
+    - Refactored `web/src/context/AuthContext.tsx` with optimistic cached session rendering and non-destructive background revalidation, only clearing tokens on explicit `401`/`403` server responses.
+    - Extended backend JWT validity to 30 days (`expiresIn: '30d'`) with strict dotenv loading for commercial kitchen tablets.
 - **Database Seeding & Verification**:
   - Successfully executed `npm run seed`, populating multi-tenant test datasets for "The Grand Palace Hotel" and "Bistro Bella Napoli".
   - Verified Model Context Protocol (MCP) tool executions (`npm run test:mcp`) across both `postgres-mcp` (connected to live PostgreSQL) and `supplier-mcp`.

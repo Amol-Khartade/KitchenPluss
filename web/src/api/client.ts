@@ -12,6 +12,18 @@ import {
   AuthResponse,
 } from '../types/index.js';
 
+export class ApiError extends Error {
+  status: number;
+  data: any;
+
+  constructor(message: string, status: number, data?: any) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.data = data;
+  }
+}
+
 const API_BASE = '/api';
 
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
@@ -30,7 +42,8 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
-    throw new Error(errorBody.message || errorBody.error || `HTTP ${response.status}: ${response.statusText}`);
+    const message = errorBody.message || errorBody.error || `HTTP ${response.status}: ${response.statusText}`;
+    throw new ApiError(message, response.status, errorBody);
   }
 
   return response.json();

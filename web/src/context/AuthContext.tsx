@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Organization, AuthResponse } from '../types/index.js';
-import { authApi } from '../api/client.js';
+import { authApi, ApiError } from '../api/client.js';
 
 interface AuthContextType {
   user: User | null;
@@ -67,7 +67,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return localStorage.getItem(TOKEN_KEY);
   });
 
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  // If local credentials exist, we are not loading; immediate render without session flash
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    try {
+      const storedToken = localStorage.getItem(TOKEN_KEY);
+      const storedUser = localStorage.getItem(USER_KEY);
+      return Boolean(storedToken && !storedUser);
+    } catch {
+      return false;
+    }
+  });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
 
@@ -90,15 +99,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           localStorage.setItem(USER_KEY, JSON.stringify(currentUser));
           localStorage.setItem(ORG_KEY, JSON.stringify(currentOrg));
         }
-      } catch (err) {
-        console.warn('Session verification failed or expired, clearing session:', err);
-        if (isMounted) {
-          setUser(null);
-          setOrganization(null);
-          setToken(null);
-          localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(USER_KEY);
-          localStorage.removeItem(ORG_KEY);
+      } catch (err: any) {
+        // Only clear session if the backend explicitly rejected credentials with 401 or 403
+        if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+          console.warn('Session verification rejected by server, clearing session:', err.message);
+          if (isMounted) {
+            setUser(null);
+            setOrganization(null);
+            setToken(null);
+            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(USER_KEY);
+            localStorage.removeItem(ORG_KEY);
+          }
+        } else {
+          // Network hiccup or server startup lag: preserve cached session so user stays logged in
+          console.warn('Background session verification skipped (keeping offline/cached credentials):', err.message || err);
         }
       } finally {
         if (isMounted) setIsLoading(false);

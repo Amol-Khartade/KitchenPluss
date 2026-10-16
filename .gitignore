@@ -37,9 +37,10 @@ mobile/web-build/
 .idea/
 *.swp
 
-# OS
+# OS & Office Locks
 .DS_Store
 Thumbs.db
+~$*
 
 # AI Skills
 .gemini/
