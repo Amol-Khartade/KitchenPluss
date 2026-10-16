@@ -48,7 +48,7 @@ Implement multi-tenant client/organization isolation (e.g., hotel or restaurant 
 - [x] **Day 1: Scaffold Python/FastAPI service** **[Completed]**
   - *Task*: Scaffold services/ai-agent/ directory with Python, FastAPI, and Uvicorn. Connect it to the existing docker-compose.yml.
   - *Manager Standup Update*: "I containerized and scaffolded a dedicated Python/FastAPI AI microservice within our Docker compose stack to isolate LLM agent orchestration from the core API."
-- [/] **Day 2: Next.js Full-Stack & DRY Shared Core** **[In Progress]**
+- [x] **Day 2: Next.js Full-Stack & DRY Shared Core** **[Completed]**
   - *Task*: Initialize Next.js 15 App Router in web/ and extract @kitchenpulse/shared monorepo package (Zod schemas, DTOs, types) to eliminate code duplication across web and mobile.
   - *Manager Standup Update*: "I migrated web to Next.js 15 App Router with full-stack Route Handlers and extracted @kitchenpulse/shared to eliminate duplicate types across web and mobile."
 - [ ] **Day 3: Gemini SDK Integration** 
