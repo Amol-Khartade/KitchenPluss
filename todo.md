@@ -51,7 +51,7 @@ Implement multi-tenant client/organization isolation (e.g., hotel or restaurant 
 - [x] **Day 2: Next.js Full-Stack & DRY Shared Core** **[Completed]**
   - *Task*: Initialize Next.js 15 App Router in web/ and extract @kitchenpulse/shared monorepo package (Zod schemas, DTOs, types) to eliminate code duplication across web and mobile.
   - *Manager Standup Update*: "I migrated web to Next.js 15 App Router with full-stack Route Handlers and extracted @kitchenpulse/shared to eliminate duplicate types across web and mobile."
-- [ ] **Day 3: Gemini SDK Integration** 
+- [x] **Day 3: Gemini SDK Integration** **[Completed]**
   - *Task*: Integrate Gemini 1.5 Pro / Flash via the Google GenAI SDK with structured outputs.
   - *Manager Standup Update*: "I established direct Gemini SDK integration in the AI microservice with structured JSON output enforcement."
 - [ ] **Day 4: Database Connection (SQLAlchemy)** 
@@ -212,6 +212,54 @@ Implement multi-tenant client/organization isolation (e.g., hotel or restaurant 
   - Verified that neither Web nor Mobile displays any dashboard before logging in.
 - [x] **5.4. Organization Creation Test**
   - Verified registering a new Hotel/Restaurant creates an organization and assigns the `Owner` role.
+
+---
+
+### Phase 6: Dynamic Stocks, Dishes & Recipe BOM Management
+- [x] **6.1. Recipe BOM Backend API & RBAC**
+  - Created endpoints for Bill of Materials (BOM) item management:
+    - `POST /api/recipes/:id/ingredients`: Attach or update single ingredient requirement in dish BOM.
+    - `DELETE /api/recipes/:id/ingredients/:ingredientId`: Remove ingredient from dish BOM.
+    - `PUT /api/recipes/:id/ingredients`: Batch atomic sync/replacement of entire dish BOM.
+  - Implemented role-based protection (`requireRole(['Owner', 'Admin', 'Executive Chef'])`) across dish creation, editing, deletion, and BOM updates.
+  - Guarded stock deletion with `requireRole(['Owner', 'Admin'])` (`DELETE /api/ingredients/:id`).
+- [x] **6.2. Web API Client Integration (`web/src/api/client.ts`)**
+  - Added typed methods to `ingredientsApi`: `create()`, `delete()`.
+  - Added typed methods to `recipesApi`: `getById()`, `create()`, `update()`, `delete()`, `addIngredient()`, `removeIngredient()`, `syncIngredients()`.
+- [x] **6.3. Interactive Web Command Center UI**
+  - **`NewIngredientModal`**: Modal for creating new stock items with name, unit, initial stock, safety threshold, and unit cost.
+  - **`NewRecipeModal`**: Interactive dish/drink/starter builder with station categorization, menu price, prep time, and dynamic multi-row BOM builder with live portion cost calculation and gross margin percentage badge.
+  - **`RecipesManagerView`**: Comprehensive menu catalog with category filter tabs (`Starters`, `Grill`, `Sauté`, `Bar & Drinks`, `Desserts`), search bar, expandable BOM breakdown, delete dish action with RBAC checks, and 1-tap "Fire to KDS" order injection.
+  - **`InventoryView` Update**: Integrated search bar, "+ Add Stock Item" button opening creation modal, and row-level delete buttons for both desktop table and mobile cards.
+  - **`Header` Navigation**: Added "Dishes & BOM" tab (`activeTab === 'menu'`) with Lucide `UtensilsCrossed` icon.
+- [x] **6.4. Automated Verification Suite (`backend/scripts/verify-stocks-dishes-bom.ts`)**
+  - Automated 8-step test covering:
+    1. Multi-role authentication (`Owner`, `Line Cook`, and foreign tenant `Owner`)
+    2. Dynamic stock item creation (`POST /api/ingredients`)
+    3. Dish creation with station assignment (`POST /api/recipes`)
+    4. BOM single attachment & batch sync (`POST/PUT /api/recipes/:id/ingredients`)
+    5. Recipe BOM query & nested structure verification (`GET /api/recipes/:id`)
+    6. RBAC enforcement (Line Cook forbidden with `403` from deleting stocks or recipes)
+    7. Multi-tenant isolation (foreign tenant blocked with `404` from accessing or mutating other tenants' recipes/stocks)
+    8. Cascade deletion & cleanup of BOM items, dishes, and stock.
+  - Added `"test:bom"` npm script in root `package.json`.
+- [x] **6.5. AI Recipe Generation & Dynamic Inventory Seeding Engine**
+  - Implemented `POST /api/recipes/ai-generate` powered by Gemini AI and domain-specific culinary fallback engine.
+  - Automatically parses dish prompts (e.g., "Chicken Masala Handi", "Paneer Tikka", "Classic Mojito") into proper dish specifications:
+    - Kitchen station classification (`Sauté`, `Grill`, `Starters`, `Bar & Drinks`, `Desserts`)
+    - Portion-accurate Bill of Materials (BOM) with units and required quantities
+    - Intelligent matching against existing kitchen inventory to reuse in-stock items
+    - Identification of missing ingredients with recommended initial stocks and safety thresholds
+  - Implemented transactional `POST /api/recipes/with-ingredients`:
+    - Automatically creates missing ingredients in `ingredients` table
+    - Avoids duplicates by matching existing lowercase ingredient names scoped to `organization_id`
+    - Inserts the new recipe and connects all Bill of Materials rows into `recipe_ingredients`
+- [x] **6.6. Dual-Mode Dish Creator UI (AI Assistant + Manual BOM Builder)**
+  - Redesigned `NewRecipeModal.tsx`:
+    - **`✨ AI Generator Tab`**: Type dish prompt or click quick sample chips (Chicken Masala Handi, Paneer Tikka, Mojito), instant AI extraction, auto-fills complete form with chef description.
+    - **`✏️ Manual Builder Tab`**: Type dish names, select stations, and build multi-row BOM by selecting from stock or adding new custom stock items on the fly.
+    - **Live Financial & Margin HUD**: Real-time Cost/Portion, Selling Price, Food Cost %, Gross Margin %, and Inventory Sync indicator (shows how many new items will be added to stock).
+  - Validated via automated test suite `backend/scripts/verify-ai-dish-and-ingredients.ts` (`npm run test:ai-dish`) with 100% pass rate.
 
 ---
 

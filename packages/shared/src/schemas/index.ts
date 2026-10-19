@@ -123,3 +123,28 @@ export const UpdateUserRoleSchema = z.object({
 });
 
 export type UpdateUserRoleInput = z.infer<typeof UpdateUserRoleSchema>;
+
+// ── Recipe & AI Schemas ────────────────────────────────────
+
+export const AiRecipeGenerateSchema = z.object({
+  prompt: z.string().trim().min(2, 'Dish prompt must be at least 2 characters'),
+  station: z.string().trim().optional(),
+  target_cost: z.number().positive().optional(),
+});
+
+export const CreateRecipeWithIngredientsSchema = z.object({
+  name: z.string().trim().min(1, 'Dish name is required').max(255),
+  station: z.string().trim().min(1, 'Station is required').max(100).default('Sauté'),
+  price: z.number().positive('Price must be greater than zero'),
+  prep_time_minutes: z.number().int().positive().default(15),
+  description: z.string().trim().optional(),
+  ingredients: z.array(z.object({
+    ingredient_id: z.string().uuid().optional(),
+    name: z.string().trim().min(1, 'Ingredient name is required'),
+    unit: z.string().trim().min(1, 'Unit is required').max(50),
+    quantity_required: z.number().positive('Quantity required must be positive'),
+    cost_per_unit: z.number().nonnegative().optional().default(0),
+    current_stock: z.number().nonnegative().optional().default(10),
+    minimum_threshold: z.number().nonnegative().optional().default(3),
+  })).min(1, 'At least one ingredient is required in the Bill of Materials'),
+});

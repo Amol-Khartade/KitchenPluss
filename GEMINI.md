@@ -141,13 +141,14 @@ KitchenPluss/
 │   └── ai-agent/                  # Python FastAPI AI Agent Microservice (Port 8000)
 │       ├── Dockerfile             # Container configuration with Uvicorn
 │       ├── requirements.txt       # FastAPI, Uvicorn, Pydantic, HTTPX
-│       ├── test_agent.py          # Endpoint & schema verification test
 │       └── app/
 │           ├── main.py            # FastAPI entrypoint, CORS & routers
-│           ├── config.py          # Settings & ENV variables
+│           ├── config.py          # Settings & ENV variables (gemini_model: gemini-3.8-flash)
 │           ├── routers/           # /health, /api/v1/agent/forecast, /inventory-eval
-│           ├── schemas/           # Pydantic DTO models
-│           └── services/          # Core forecasting & inventory reasoning logic
+│           ├── schemas/           # Pydantic models & Gemini structured outputs
+│           └── services/          # Core forecasting, inventory logic & GeminiService
+│               ├── agent_service.py # AI domain router
+│               └── gemini_service.py# Google GenAI SDK (gemini-3.8-flash) + structured JSON output
 │
 ├── docs/
 │   └── KitchenPluss AI Integration Plan.xlsx # Multi-phase AI roadmap synced with todo.md
@@ -168,9 +169,9 @@ KitchenPluss/
 | **Web Frontend** | Next.js 15 (App Router), React 18/19, Vite 5 dual-engine, Tailwind CSS 3.4, Lucide React, `@tanstack/react-query` v5, Dark OLED theme (`ui-ux-pro-max`) |
 | **Mobile App** | Expo SDK 57, React Native 0.86, React 19, `react-native-mmkv` v4 + `react-native-nitro-modules` (synchronous C++ storage), `zustand` v5, `@tanstack/react-query` v5, `react-native-reanimated` v4, `zod` |
 | **Backend API** | Node.js (>=20.0), Express 4, TypeScript 5.7, `tsx`, `pg` (PostgreSQL client), `jsonwebtoken`, `bcryptjs`, `cors`, `dotenv`, `zod` |
-| **Python AI Agent** | Python (>=3.11), FastAPI, Uvicorn, Pydantic v2, `pydantic-settings`, `httpx` (Port 8000) |
+| **Python AI Agent** | Python (>=3.11), FastAPI, Uvicorn, Pydantic v2, `google-genai` (>=2.30.1), `gemini-3.8-flash` with structured JSON output, `httpx`, `openpyxl` (Port 8000) |
 | **Real-Time** | `socket.io` (v4.8) on server, `socket.io-client` on web & mobile |
-| **AI & MCP** | Google Gemini SDK (`@google/generative-ai`), `@modelcontextprotocol/sdk` (v1.0), Stdio transports |
+| **AI & MCP** | Google Gemini SDK (`google-genai` >= 2.30.1 with `gemini-3.8-flash` & structured JSON Schema output in AI microservice; `@google/generative-ai` in backend), `@modelcontextprotocol/sdk` (v1.0), Stdio transports |
 | **Database** | PostgreSQL 16+ (Docker or native Windows service) |
 
 ---
@@ -266,8 +267,10 @@ npm run build:shared
 # Production build check (compiles @kitchenpulse/shared, backend TS, and web)
 npm run build:all
 
-# Run verification test suites (MCP, WebSocket, Multi-tenant RBAC)
+# Run verification test suites (MCP, WebSocket, AI Microservice, Multi-tenant RBAC)
 npm run test:all
+npm run test:ai           # Python FastAPI + Gemini 3.8 Flash structured output test suite
+npm run sync:phases       # Two-way sync between todo.md and docs/KitchenPluss AI Integration Plan.xlsx
 npx tsx backend/scripts/verify-multi-tenant-rbac.ts
 
 # Start development servers

@@ -20,6 +20,7 @@ import { AiPrepView } from './components/AiPrepView.js';
 import { WasteLogForm } from './components/WasteLogForm.js';
 import { UserManagementView } from './components/UserManagementView.js';
 import { AuthPortal } from './components/AuthPortal.js';
+import { RecipesManagerView } from './components/RecipesManagerView.js';
 import { useAuth } from './context/AuthContext.js';
 import { TicketStatus, AiPrepSheetResponse } from './types/index.js';
 
@@ -186,6 +187,27 @@ export function App() {
     },
   });
 
+  const addIngredientMutation = useMutation({
+    mutationFn: (data: {
+      name: string;
+      unit: string;
+      current_stock: number;
+      minimum_threshold: number;
+      cost_per_unit: number;
+    }) => ingredientsApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ingredients'] });
+    },
+  });
+
+  const deleteIngredientMutation = useMutation({
+    mutationFn: (id: string) => ingredientsApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ingredients'] });
+      queryClient.invalidateQueries({ queryKey: ['recipes'] });
+    },
+  });
+
   // ---------------------------------------------------------------- //
   // Strict Authentication Guard
   // Without user login, NEVER show the dashboard!
@@ -240,7 +262,28 @@ export function App() {
           </div>
         )}
 
-        {/* Tab 2: Inventory & Supply Chain Console */}
+        {/* Tab 2: Dishes, Drinks & BOM Manager */}
+        {activeTab === 'menu' && (
+          <RecipesManagerView
+            recipes={recipes}
+            ingredients={ingredients}
+            onRefresh={async () => {
+              await queryClient.invalidateQueries({ queryKey: ['recipes'] });
+              await queryClient.invalidateQueries({ queryKey: ['ingredients'] });
+            }}
+            hasAdminAccess={hasAdminAccess}
+            onFireTicket={async (recipeId, station) => {
+              await createTicketMutation.mutateAsync({
+                recipe_id: recipeId,
+                station: station || 'Grill',
+                table_number: 1,
+              });
+              setActiveTab('kds');
+            }}
+          />
+        )}
+
+        {/* Tab 3: Inventory & Supply Chain Console */}
         {activeTab === 'inventory' && (
           <InventoryView
             ingredients={ingredients}
@@ -252,10 +295,13 @@ export function App() {
             onReceiveOrder={(orderId) => receiveOrderMutation.mutateAsync(orderId).then(() => {})}
             onRunAiAudit={() => inventoryAlertMutation.mutateAsync().then(() => {})}
             isAuditing={inventoryAlertMutation.isPending}
+            onAddIngredient={(data) => addIngredientMutation.mutateAsync(data).then(() => {})}
+            onDeleteIngredient={(id) => deleteIngredientMutation.mutateAsync(id).then(() => {})}
+            hasAdminAccess={hasAdminAccess}
           />
         )}
 
-        {/* Tab 3: AI Prep & Food Cost Intelligence */}
+        {/* Tab 4: AI Prep & Food Cost Intelligence */}
         {activeTab === 'ai-prep' && (
           <AiPrepView
             prepSheet={prepSheet}
@@ -267,7 +313,7 @@ export function App() {
           />
         )}
 
-        {/* Tab 4: Shift Scrap & Waste Logging */}
+        {/* Tab 5: Shift Scrap & Waste Logging */}
         {activeTab === 'waste-log' && (
           <WasteLogForm
             recipes={recipes}
@@ -277,7 +323,7 @@ export function App() {
           />
         )}
 
-        {/* Tab 5: Team & Staff Management (Owner & Admin Only) */}
+        {/* Tab 6: Team & Staff Management (Owner & Admin Only) */}
         {activeTab === 'team' && hasAdminAccess && <UserManagementView />}
       </main>
 

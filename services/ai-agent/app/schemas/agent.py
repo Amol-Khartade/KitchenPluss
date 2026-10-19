@@ -21,6 +21,12 @@ class ForecastItem(BaseModel):
     reasoning: str
 
 
+class GeminiForecastOutput(BaseModel):
+    """Structured JSON schema enforced during Gemini model output generation."""
+    items: List[ForecastItem] = Field(description="List of recipe prep portion recommendations")
+    overall_summary: str = Field(description="High-level kitchen prep optimization strategy and summary")
+
+
 class ForecastResponse(BaseModel):
     """Response containing AI prep sheet suggestions."""
     organization_id: str
@@ -28,6 +34,8 @@ class ForecastResponse(BaseModel):
     generated_at: datetime
     items: List[ForecastItem]
     overall_summary: str
+    ai_model: str = Field(default="gemini-3.8-flash", description="Gemini model employed")
+    structured_output_enforced: bool = Field(default=True, description="Enforced JSON Schema conformity")
 
 
 class InventoryEvalRequest(BaseModel):
@@ -44,7 +52,13 @@ class RecommendedAction(BaseModel):
     safety_threshold: float
     deficit: float
     suggested_order_qty: float
-    urgency: str  # NORMAL, URGENT, CRITICAL
+    urgency: str = Field(description="NORMAL, URGENT, or CRITICAL")
+
+
+class GeminiInventoryOutput(BaseModel):
+    """Structured JSON schema enforced during Gemini inventory evaluation."""
+    critical_count: int = Field(description="Total count of critical/urgent items requiring immediate purchase order")
+    recommended_orders: List[RecommendedAction] = Field(description="List of calculated supplier orders")
 
 
 class InventoryEvalResponse(BaseModel):
@@ -53,3 +67,5 @@ class InventoryEvalResponse(BaseModel):
     evaluated_at: datetime
     critical_count: int
     recommended_orders: List[RecommendedAction]
+    ai_model: str = Field(default="gemini-3.8-flash", description="Gemini model employed")
+    structured_output_enforced: bool = Field(default=True, description="Enforced JSON Schema conformity")

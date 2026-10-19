@@ -1,7 +1,7 @@
 import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import pool from '../db/pool.js';
-import { optionalAuth, AuthenticatedRequest } from '../middleware/auth.js';
+import { optionalAuth, requireRole, AuthenticatedRequest } from '../middleware/auth.js';
 
 const router = Router();
 router.use(optionalAuth);
@@ -105,9 +105,9 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response, next: NextFu
 });
 
 // ------------------------------------------------------------------ //
-// POST /api/ingredients — create (Admin / Owner or Kitchen Staff)
+// POST /api/ingredients — create (Admin / Owner or Executive Chef)
 // ------------------------------------------------------------------ //
-router.post('/', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+router.post('/', requireRole(['Owner', 'Admin', 'Executive Chef']), async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const orgId = resolveOrgId(req);
     const parsed = CreateIngredientSchema.safeParse(req.body);
@@ -244,9 +244,9 @@ router.patch('/:id', async (req: AuthenticatedRequest, res: Response, next: Next
 });
 
 // ------------------------------------------------------------------ //
-// DELETE /api/ingredients/:id
+// DELETE /api/ingredients/:id (Owner & Admin only)
 // ------------------------------------------------------------------ //
-router.delete('/:id', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+router.delete('/:id', requireRole(['Owner', 'Admin']), async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const orgId = resolveOrgId(req);
     const { id } = req.params;
