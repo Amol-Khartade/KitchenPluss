@@ -13,6 +13,7 @@ try:
         backend_url: str = Field(default="http://localhost:5000", alias="BACKEND_URL")
         database_url: Optional[str] = Field(default=None, alias="DATABASE_URL")
         gemini_api_key: Optional[str] = Field(default=None, alias="GEMINI_API_KEY")
+        gemini_model: str = Field(default="gemini-3.8-flash", alias="GEMINI_MODEL")
 
         model_config = SettingsConfigDict(
             env_file=".env",
@@ -33,6 +34,7 @@ except ImportError:
         backend_url: str = os.getenv("BACKEND_URL", "http://localhost:5000")
         database_url: Optional[str] = os.getenv("DATABASE_URL")
         gemini_api_key: Optional[str] = os.getenv("GEMINI_API_KEY")
+        gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
 
 
 settings = Settings()

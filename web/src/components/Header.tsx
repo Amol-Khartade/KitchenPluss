@@ -21,10 +21,11 @@ import {
   Activity,
   CheckCircle2,
   AlertTriangle,
+  UtensilsCrossed,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.js';
 
-export type AppTab = 'kds' | 'inventory' | 'ai-prep' | 'waste-log' | 'team';
+export type AppTab = 'kds' | 'inventory' | 'menu' | 'ai-prep' | 'waste-log' | 'team';
 
 interface HeaderProps {
   activeTab: AppTab;
@@ -227,6 +228,20 @@ export const Header: React.FC<HeaderProps> = ({
                     {ticketCounts.lowStock}
                   </span>
                 )}
+              </button>
+
+              {/* Menu & Recipes Tab */}
+              <button
+                onClick={() => setActiveTab('menu')}
+                className={`group relative flex items-center space-x-1.5 sm:space-x-2 px-2.5 lg:px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                  activeTab === 'menu'
+                    ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-[0_0_20px_rgba(236,72,153,0.3)] border border-pink-400/40'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                }`}
+              >
+                <UtensilsCrossed className={`w-4 h-4 transition-transform ${activeTab === 'menu' ? 'scale-110 text-pink-300' : 'group-hover:scale-110'}`} />
+                <span className="hidden lg:inline">Dishes & BOM</span>
+                <span className="lg:hidden">Menu</span>
               </button>
 
               {/* Prep AI Tab */}

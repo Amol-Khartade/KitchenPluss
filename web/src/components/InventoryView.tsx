@@ -11,7 +11,11 @@ import {
   Truck,
   ShieldCheck,
   RefreshCw,
+  PackagePlus,
+  Trash2,
+  Search,
 } from 'lucide-react';
+import { NewIngredientModal } from './NewIngredientModal.js';
 
 interface InventoryViewProps {
   ingredients: Ingredient[];
@@ -21,6 +25,15 @@ interface InventoryViewProps {
   onReceiveOrder: (orderId: string) => Promise<void>;
   onRunAiAudit: () => Promise<void>;
   isAuditing?: boolean;
+  onAddIngredient?: (data: {
+    name: string;
+    unit: string;
+    current_stock: number;
+    minimum_threshold: number;
+    cost_per_unit: number;
+  }) => Promise<void>;
+  onDeleteIngredient?: (id: string) => Promise<void>;
+  hasAdminAccess?: boolean;
 }
 
 export const InventoryView: React.FC<InventoryViewProps> = ({
@@ -31,16 +44,24 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
   onReceiveOrder,
   onRunAiAudit,
   isAuditing = false,
+  onAddIngredient,
+  onDeleteIngredient,
+  hasAdminAccess = false,
 }) => {
   const [selectedIngredientForOrder, setSelectedIngredientForOrder] = useState<Ingredient | null>(null);
   const [orderQuantity, setOrderQuantity] = useState<number>(10);
   const [filterLowOnly, setFilterLowOnly] = useState<boolean>(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const lowStockItems = ingredients.filter(
     (i) => Number(i.current_stock) <= Number(i.minimum_threshold)
   );
 
-  const displayedIngredients = filterLowOnly ? lowStockItems : ingredients;
+  const displayedIngredients = (filterLowOnly ? lowStockItems : ingredients).filter((i) =>
+    i.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleQuickAdjust = (ingredient: Ingredient, delta: number) => {
     const nextVal = Math.max(0, Number(ingredient.current_stock) + delta);
@@ -130,7 +151,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
 
       {/* Main Inventory Panel */}
       <div className="glass-panel rounded-2xl border border-white/10 overflow-hidden shadow-glass">
-        <div className="p-4 sm:px-6 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-900/40">
+        <div className="p-4 sm:px-6 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-900/40">
           <div>
             <h3 className="text-base font-bold text-white tracking-tight">
               Live Pantry & Walk-In Stock Levels
@@ -139,14 +160,39 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
               Stock automatically deducts whenever tickets are marked completed on the KDS
             </p>
           </div>
-          {lowStockItems.length > 0 && (
-            <button
-              onClick={() => setFilterLowOnly(!filterLowOnly)}
-              className="text-xs font-semibold text-rose-400 hover:text-rose-300 underline underline-offset-4 self-start sm:self-auto"
-            >
-              {filterLowOnly ? 'Show All Items' : `Filter to Low Stock (${lowStockItems.length})`}
-            </button>
-          )}
+
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Search */}
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search pantry..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 pr-3 py-1.5 rounded-xl bg-slate-900 border border-white/10 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-sky-500"
+              />
+            </div>
+
+            {lowStockItems.length > 0 && (
+              <button
+                onClick={() => setFilterLowOnly(!filterLowOnly)}
+                className="text-xs font-semibold text-rose-400 hover:text-rose-300 underline underline-offset-4"
+              >
+                {filterLowOnly ? 'Show All' : `Low Stock (${lowStockItems.length})`}
+              </button>
+            )}
+
+            {hasAdminAccess && onAddIngredient && (
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white text-xs font-semibold shadow-md flex items-center space-x-1.5 transition-all"
+              >
+                <PackagePlus className="w-3.5 h-3.5" />
+                <span>Add Stock Item</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Responsive Table for Tablet & Desktop (sm:block) */}
@@ -227,6 +273,26 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                     <ShoppingCart className="w-3.5 h-3.5 text-indigo-400" />
                     <span>Order PO</span>
                   </button>
+
+                  {/* Delete Button (Owner/Admin) */}
+                  {hasAdminAccess && onDeleteIngredient && (
+                    <button
+                      disabled={deletingId === item.id}
+                      onClick={async () => {
+                        if (!window.confirm(`Delete "${item.name}" from inventory?`)) return;
+                        setDeletingId(item.id);
+                        try {
+                          await onDeleteIngredient(item.id);
+                        } finally {
+                          setDeletingId(null);
+                        }
+                      }}
+                      className="p-2 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-950/30 transition-colors"
+                      title="Delete ingredient"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             );
@@ -309,6 +375,25 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                       <ShoppingCart className="w-3.5 h-3.5" />
                       <span>Order</span>
                     </button>
+
+                    {hasAdminAccess && onDeleteIngredient && (
+                      <button
+                        disabled={deletingId === item.id}
+                        onClick={async () => {
+                          if (!window.confirm(`Delete "${item.name}" from inventory?`)) return;
+                          setDeletingId(item.id);
+                          try {
+                            await onDeleteIngredient(item.id);
+                          } finally {
+                            setDeletingId(null);
+                          }
+                        }}
+                        className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-950/30 active:scale-95 transition-all"
+                        title="Delete ingredient"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -452,6 +537,15 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
             </form>
           </div>
         </div>
+      )}
+
+      {/* New Ingredient Modal */}
+      {onAddIngredient && (
+        <NewIngredientModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSubmit={onAddIngredient}
+        />
       )}
     </div>
   );

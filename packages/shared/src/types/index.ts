@@ -279,6 +279,53 @@ export type WsEvent =
   | WsStockAlert
   | WsOrderUpdate;
 
+// ── AI Recipe Generation & Dynamic BOM ─────────────────────
+
+export interface AiRecipeGenerateInput {
+  prompt: string;
+  station?: string;
+  target_cost?: number;
+}
+
+export interface AiRecipeGeneratedIngredient {
+  name: string;
+  unit: string;
+  quantity_required: number;
+  cost_per_unit: number;
+  current_stock?: number;
+  minimum_threshold?: number;
+  matched_ingredient_id?: string;
+  is_new?: boolean;
+}
+
+export interface AiRecipeGenerateResponse {
+  dish_name: string;
+  station: string;
+  price: number;
+  prep_time_minutes: number;
+  description?: string;
+  ingredients: AiRecipeGeneratedIngredient[];
+  estimated_cost_per_portion: number;
+  suggested_margin_pct: number;
+}
+
+export interface CreateRecipeWithIngredientsInput {
+  name: string;
+  station: string;
+  price: number;
+  prep_time_minutes: number;
+  description?: string;
+  ingredients: {
+    ingredient_id?: string;
+    name: string;
+    unit: string;
+    quantity_required: number;
+    cost_per_unit?: number;
+    current_stock?: number;
+    minimum_threshold?: number;
+  }[];
+}
+
 // ── API Wrapper ────────────────────────────────────────────
 
 export interface ApiResponse<T> {

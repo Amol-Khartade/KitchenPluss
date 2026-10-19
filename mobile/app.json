@@ -20,6 +20,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "backendUrl": "http://localhost:5000",
+      "eas": {
+        "projectId": "0152cf81-8be7-4aca-9202-fcca00361695"
+      }
     }
   }
 }

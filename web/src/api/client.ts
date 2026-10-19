@@ -7,6 +7,9 @@ import {
   FoodCostSummary,
   SupplierOrder,
   AiPrepSheetResponse,
+  AiRecipeGenerateInput,
+  AiRecipeGenerateResponse,
+  CreateRecipeWithIngredientsInput,
   User,
   Organization,
   AuthResponse,
@@ -68,6 +71,17 @@ export const ticketsApi = {
 // Ingredients API
 export const ingredientsApi = {
   getAll: () => request<Ingredient[]>('/ingredients'),
+  create: (data: {
+    name: string;
+    unit: string;
+    current_stock: number;
+    minimum_threshold: number;
+    cost_per_unit?: number;
+  }) =>
+    request<Ingredient>('/ingredients', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
   updateStock: (id: string, current_stock: number) =>
     request<Ingredient>(`/ingredients/${id}/stock`, {
       method: 'PATCH',
@@ -78,11 +92,65 @@ export const ingredientsApi = {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
+  delete: (id: string) =>
+    request<void>(`/ingredients/${id}`, {
+      method: 'DELETE',
+    }),
 };
 
 // Recipes API
 export const recipesApi = {
-  getAll: () => request<Recipe[]>('/recipes'),
+  getAll: (station?: string) =>
+    request<Recipe[]>(station ? `/recipes?station=${encodeURIComponent(station)}` : '/recipes'),
+  getById: (id: string) =>
+    request<Recipe & { ingredients: Array<{ ingredient_id: string; ingredient_name: string; unit: string; quantity_required: number }> }>(`/recipes/${id}`),
+  create: (data: {
+    menu_item_name: string;
+    station: string;
+    price: number;
+    prep_time_minutes?: number;
+    ingredients?: Array<{ ingredient_id: string; quantity_required: number }>;
+  }) =>
+    request<Recipe>('/recipes', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  update: (id: string, data: Partial<Recipe>) =>
+    request<Recipe>(`/recipes/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  delete: (id: string) =>
+    request<void>(`/recipes/${id}`, {
+      method: 'DELETE',
+    }),
+  syncIngredients: (id: string, ingredients: Array<{ ingredient_id: string; quantity_required: number }>) =>
+    request<{ recipe_id: string; ingredients: any[] }>(`/recipes/${id}/ingredients`, {
+      method: 'PUT',
+      body: JSON.stringify({ ingredients }),
+    }),
+  addIngredient: (id: string, data: { ingredient_id: string; quantity_required: number }) =>
+    request<any>(`/recipes/${id}/ingredients`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  removeIngredient: (recipeId: string, ingredientId: string) =>
+    request<void>(`/recipes/${recipeId}/ingredients/${ingredientId}`, {
+      method: 'DELETE',
+    }),
+  aiGenerate: (data: AiRecipeGenerateInput) =>
+    request<AiRecipeGenerateResponse>('/recipes/ai-generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  createWithIngredients: (data: CreateRecipeWithIngredientsInput) =>
+    request<Recipe & { ingredients: any[]; newly_created_ingredients_count?: number }>(
+      '/recipes/with-ingredients',
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }
+    ),
 };
 
 // Prep Logs API
