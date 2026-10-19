@@ -26,12 +26,14 @@ const COLUMN_LABELS: Record<LiveTicket["status"], string> = {
   QUEUE: "⏳ Queue",
   FIRING: "🔥 Firing",
   COMPLETED: "✅ Done",
+  CANCELLED: "🚫 Cancelled",
 };
 
 const COLUMN_COLORS: Record<LiveTicket["status"], string> = {
   QUEUE: "#38BDF8", // Cyan / sky
   FIRING: "#F59E0B", // Amber
   COMPLETED: "#10B981", // Emerald
+  CANCELLED: "#EF4444", // Rose
 };
 
 type ViewFilter = "ALL" | LiveTicket["status"];

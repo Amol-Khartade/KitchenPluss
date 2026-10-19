@@ -40,6 +40,79 @@ Implement multi-tenant client/organization isolation (e.g., hotel or restaurant 
 
 ---
 
+## 🚀 KitchenPluss AI Integration 4-Week Roadmap (Synced with Excel)
+> Source: [`docs/KitchenPluss AI Integration Plan.xlsx`](docs/KitchenPluss%20AI%20Integration%20Plan.xlsx)
+
+
+### Week 1: Python Microservice & Kitchen Data Ingestion
+- [x] **Day 1: Scaffold Python/FastAPI service** **[Completed]**
+  - *Task*: Scaffold services/ai-agent/ directory with Python, FastAPI, and Uvicorn. Connect it to the existing docker-compose.yml.
+  - *Manager Standup Update*: "I containerized and scaffolded a dedicated Python/FastAPI AI microservice within our Docker compose stack to isolate LLM agent orchestration from the core API."
+- [x] **Day 2: Next.js Full-Stack & DRY Shared Core** **[Completed]**
+  - *Task*: Initialize Next.js 15 App Router in web/ and extract @kitchenpulse/shared monorepo package (Zod schemas, DTOs, types) to eliminate code duplication across web and mobile.
+  - *Manager Standup Update*: "I migrated web to Next.js 15 App Router with full-stack Route Handlers and extracted @kitchenpulse/shared to eliminate duplicate types across web and mobile."
+- [ ] **Day 3: Gemini SDK Integration** 
+  - *Task*: Integrate Gemini 1.5 Pro / Flash via the Google GenAI SDK with structured outputs.
+  - *Manager Standup Update*: "I established direct Gemini SDK integration in the AI microservice with structured JSON output enforcement."
+- [ ] **Day 4: Database Connection (SQLAlchemy)** 
+  - *Task*: Connect the Python service to your PostgreSQL database using SQLAlchemy/asyncpg to query real inventory tables.
+  - *Manager Standup Update*: "I enabled read access from the AI microservice to our production PostgreSQL database to allow live state inspection."
+- [ ] **Day 5: SSE Streaming** 
+  - *Task*: Expose a streaming SSE endpoint (/api/agent/stream) that the React Native app can listen to for real-time recommendations.
+  - *Manager Standup Update*: "I created a Server-Sent Events (SSE) streaming endpoint in the AI service to deliver real-time token streaming to the mobile client."
+
+### Week 2: Recipe & SOP Vector Database (RAG over Recipes)
+- [ ] **Day 6: pgvector Setup** 
+  - *Task*: Enable the pgvector extension in your existing PostgreSQL database (01_init.sql).
+  - *Manager Standup Update*: "I enabled the pgvector extension on our PostgreSQL instance to support in-database vector embeddings without needing third-party vector DBs."
+- [ ] **Day 7: Document Embedding Pipeline** 
+  - *Task*: Build an embedding pipeline to index recipe instructions, allergen warnings, and prep procedures.
+  - *Manager Standup Update*: "I built an automated embedding script that converts recipe steps and allergen tables into vector embeddings."
+- [ ] **Day 8: Vector Similarity Search** 
+  - *Task*: Implement vector similarity search (cosine distance) to answer queries like "How do I prep garlic confit safely?".
+  - *Manager Standup Update*: "I implemented semantic similarity search directly in Postgres to match kitchen queries against stored prep protocols."
+- [ ] **Day 9: RAG Pipeline** 
+  - *Task*: Assemble the complete RAG pipeline with relevance re-ranking and source attribution.
+  - *Manager Standup Update*: "I completed the RAG retrieval pipeline, grounding AI responses strictly in our validated kitchen standard operating procedures."
+- [ ] **Day 10: API & Mobile Exposure** 
+  - *Task*: Wire the RAG endpoint into the mobile PrepSheetScreen.tsx so chefs can ask real-time questions about recipes.
+  - *Manager Standup Update*: "I exposed the RAG engine via REST and tested context retrieval for kitchen prep procedures."
+
+### Week 3: Multi-Agent Workflows with LangGraph
+- [ ] **Day 11: LangGraph Basics & State** 
+  - *Task*: Install LangGraph and design the Kitchen State Graph: ChefQueryState containing conversation context, kitchen ID, and tool calls.
+  - *Manager Standup Update*: "I began designing our agentic state machine using LangGraph to handle multi-step kitchen logic."
+- [ ] **Day 12: Inventory Agent Node** 
+  - *Task*: Implement node that uses existing supplier-mcp logic to check ingredient levels and flag impending stockouts.
+  - *Manager Standup Update*: "I implemented the Inventory Agent node, enabling autonomous checks against low-stock thresholds."
+- [ ] **Day 13: Supplier Order Agent Node** 
+  - *Task*: Automatically drafts a purchase order if an ingredient drops below the safety margin, utilizing tool calls.
+  - *Manager Standup Update*: "I added an automated supplier ordering tool that drafts purchase orders when stock reaches critical thresholds."
+- [ ] **Day 14: Supervisor/Router Node** 
+  - *Task*: An orchestrator LLM that inspects kitchen events and routes to either Prep Optimization or Supplier Restock.
+  - *Manager Standup Update*: "I built a supervisor agent graph that routes events between inventory management, prep optimization, and order fulfillment."
+- [ ] **Day 15: State Persistence** 
+  - *Task*: Implement state persistence using Postgres checkpointer (langgraph-checkpoint-postgres).
+  - *Manager Standup Update*: "I added PostgreSQL checkpointers to our agent workflows, ensuring conversations and active runs survive service restarts."
+
+### Week 4: Mobile & Web Integration (Connecting the React Native Stack)
+- [ ] **Day 16: KDS WebSocket Optimization & Mobile Sync** 
+  - *Task*: Optimize Socket.IO channels for sub-50ms latency across kitchen stations and configure offline reconnect buffers for tablets.
+  - *Manager Standup Update*: "I optimized the real-time KDS Socket.IO channels for sub-50ms latency and configured offline event queuing for kitchen tablets."
+- [ ] **Day 17: Unified API Routes & Socket Server** 
+  - *Task*: Migrate Express API routes to Next.js Route Handlers (app/api/*) and attach custom Socket.IO server.ts for live KDS real-time events.
+  - *Manager Standup Update*: "I migrated backend routes into Next.js Route Handlers, serving both Web Server Components and the mobile Expo tablet app from a single API with live Socket.IO."
+- [ ] **Day 18: React Native Bottom Sheets & DRY UI** 
+  - *Task*: Build animated AI Recommendations sheet in mobile using React Native Reanimated and shared Zod schemas to review and approve draft supplier orders.
+  - *Manager Standup Update*: "I created a bottom sheet interface in React Native utilizing shared Zod schemas to review and approve AI-generated supplier orders."
+- [ ] **Day 19: E2E Integration & Bundle Optimization** 
+  - *Task*: Verify end-to-end flow: Mobile ticket firing -> Next.js API & Socket.IO -> AI Agent audit -> Bundle size optimization check.
+  - *Manager Standup Update*: "I ran end-to-end tests validating the unified Next.js + Mobile flow and confirmed significant client bundle size reductions via React Server Components."
+- [ ] **Day 20: Dockerization & Unified Deployment** 
+  - *Task*: Containerize unified Next.js full-stack + Python AI Agent + Postgres/pgvector stack with Docker Compose for production deployment.
+  - *Manager Standup Update*: "I containerized the full unified Next.js + Python AI microservice stack in Docker Compose, achieving a single consolidated deployment."
+
+---
 ## 📋 Phased Task List
 
 ### Phase 1: Database Schema & Multi-Tenancy Foundation
@@ -139,3 +212,145 @@ Implement multi-tenant client/organization isolation (e.g., hotel or restaurant 
   - Verified that neither Web nor Mobile displays any dashboard before logging in.
 - [x] **5.4. Organization Creation Test**
   - Verified registering a new Hotel/Restaurant creates an organization and assigns the `Owner` role.
+
+---
+
+## 🏗️ Architectural Evolution: Next.js Full-Stack & DRY Monorepo Plan
+
+### 1. Executive Summary & Rationale
+Currently, **KitchenPulse** operates with three separate application runtimes:
+1. `backend/`: Express + Socket.IO server (Port 5000)
+2. `web/`: React 18 + Vite SPA (Port 3000)
+3. `mobile/`: React Native / Expo Tablet App (Port 8081)
+
+**The Problem**:
+- **Code Duplication**: Types, interfaces, and Zod schemas are triplicated across `backend/src/types`, `web/src/types`, and `mobile/src/types`. Any schema migration requires manual sync across all three directories.
+- **Client Bundle Size**: The Vite SPA sends the entire client-side bundle (~358 KB min+gzip) to the browser, including heavy charting and operational views that could be server-rendered.
+- **Dual Server Overhead**: Running both an Express API server and a Vite dev server complicates container orchestration and increases memory overhead in edge/commercial deployments.
+
+**The Solution**:
+Migrate `web/` to **Next.js 15 (App Router)** and introduce a shared internal monorepo package **`packages/shared`** (`@kitchenpulse/shared`).
+
+```mermaid
+graph TD
+    subgraph Monorepo ["KitchenPulse Monorepo (pnpm / npm workspaces)"]
+        Shared["packages/shared<br/>• Zod Schemas (Tickets, Recipes, Orders)<br/>• TypeScript DTOs & Interfaces<br/>• Food Cost Calculation Formulas<br/>• TanStack Query Key Factories"]
+        
+        subgraph WebNext ["web/ (Next.js 15 Full-Stack - Port 3000)"]
+            RSC["React Server Components<br/>(Zero-bundle Food Cost / Inventory SSR)"]
+            ClientUI["Client Components<br/>(Interactive KDS Kanban Board)"]
+            RouteHandlers["Next.js Route Handlers<br/>(app/api/* - REST API)"]
+            CustomServer["server.ts (Node.js http.Server)<br/>Socket.IO Real-Time KDS Engine"]
+        end
+        
+        subgraph MobileApp ["mobile/ (Expo SDK 57 - Port 8081)"]
+            ExpoUI["Kitchen Tablet UI<br/>(MMKV Cache, Reanimated KDS)"]
+            MobileQueries["TanStack Query v5 Hooks"]
+        end
+        
+        subgraph PythonMicroservice ["services/ai-agent/ (FastAPI - Port 8000)"]
+            GeminiLangGraph["Google Gemini 1.5 + LangGraph<br/>• Autonomous Supplier PO Agent<br/>• Historical Prep Forecaster"]
+        end
+        
+        Postgres[(PostgreSQL 16 + pgvector<br/>Port 5432)]
+    end
+
+    Shared -->|Import Schemas & Types| WebNext
+    Shared -->|Import Schemas & Types| MobileApp
+    RouteHandlers -->|Direct Pool Queries| Postgres
+    CustomServer -->|Socket.io Events: ticket:created, stock:alert| ClientUI
+    CustomServer -->|Socket.io Events: org:tenantId| ExpoUI
+    MobileApp -->|HTTP REST: /api/*| RouteHandlers
+    WebNext -->|Internal HTTP / SSE| PythonMicroservice
+    MobileApp -->|Direct SSE Stream: /api/agent/stream| PythonMicroservice
+```
+
+---
+
+### 2. Key Architectural Decisions & Trade-Offs
+
+| Decision | Current (Vite + Express) | Target (Next.js 15 Full-Stack) | Architectural Justification & Benefits |
+| :--- | :--- | :--- | :--- |
+| **Code Sharing (DRY)** | 3 copies of types/schemas | `@kitchenpulse/shared` | **Zero duplicate types**: Schema changes in `packages/shared` instantly update Next.js API, Web RSC, and Mobile Expo app. |
+| **API Endpoints** | Express routes (`backend/src/routes/`) | Next.js Route Handlers (`web/app/api/`) | Single runtime for web frontend and HTTP API. Mobile hits `http://api.kitchenpulse.com/api/*` directly. |
+| **Web Bundle Footprint** | Client SPA (~358 KB JS) | React Server Components (~145 KB JS) | **~50-60% client JS reduction**. Heavy data grids, food cost tables, and user management views are rendered on the server with 0 client JS. |
+| **Real-Time KDS Engine** | Express `socket.io` server | Custom `server.ts` with `socket.io` | **Commercial KDS Requirement**: Next.js serverless functions cannot maintain persistent WebSockets. A custom Node server wrapping Next.js preserves sub-100ms real-time kanban state. |
+| **AI Microservice Isolation** | FastAPI on Port 8000 | FastAPI on Port 8000 (Preserved) | Python remains the premier ecosystem for LangGraph, pgvector embeddings, and Gemini GenAI pipelines. Node/Next.js handles UI, APIs, and WebSockets. |
+
+---
+
+### 3. Monorepo Directory Restructuring
+
+```
+KitchenPluss/
+├── packages/
+│   └── shared/                       # 🌟 NEW: Single Source of Truth
+│       ├── package.json              # name: "@kitchenpulse/shared"
+│       ├── tsconfig.json
+│       └── src/
+│           ├── schemas/              # Zod validation schemas
+│           │   ├── ticket.schema.ts  # CreateTicketSchema, UpdateTicketSchema
+│           │   ├── inventory.schema.ts# IngredientSchema, StockAuditSchema
+│           │   ├── auth.schema.ts    # LoginSchema, RegisterSchema
+│           │   └── supplier.schema.ts# SupplierOrderSchema
+│           ├── types/                # TypeScript Interfaces & DTOs
+│           │   ├── tenant.types.ts   # Organization, UserRole, Session
+│           │   ├── kds.types.ts      # LiveTicket, StationWorkload
+│           │   └── socket.types.ts   # ServerToClientEvents, ClientToServerEvents
+│           └── utils/                # Shared business formulas
+│               ├── foodCost.ts       # calculateFoodCostPercentage(), wasteRate()
+│               └── formatters.ts     # Currency, prep-time clocks
+│
+├── web/                              # 🌟 MIGRATED: Next.js 15 App Router
+│   ├── package.json                  # next 15, react 18, socket.io, @kitchenpulse/shared
+│   ├── server.ts                     # Custom Node server attaching Socket.IO to Next.js
+│   ├── app/
+│   │   ├── api/                      # Unified REST API for Web & Mobile
+│   │   │   ├── auth/[...route]/      # Login, Register, Organizations, Me
+│   │   │   ├── tickets/              # KDS tickets (GET, POST, PATCH)
+│   │   │   ├── ingredients/          # Stock levels & safety thresholds
+│   │   │   └── supplier-orders/      # PO tracking & approvals
+│   │   ├── (auth)/                   # Server-rendered login portal
+│   │   ├── (dashboard)/              # Server & Client views
+│   │   │   ├── kds/                  # 'use client' KDS Kanban Board
+│   │   │   ├── inventory/            # RSC Server Component with client modal
+│   │   │   └── food-cost/            # RSC Server Component (zero client JS)
+│   │   └── layout.tsx                # Multi-tenant layout & theme provider
+│
+├── mobile/                           # PRESERVED: Expo SDK 57 + RN 0.86
+│   ├── package.json                  # Added dependency: "@kitchenpulse/shared"
+│   └── src/
+│       ├── api/client.ts             # Points to Next.js REST API (/api/*)
+│       ├── hooks/useSocket.ts        # Connects to Next.js custom Socket.IO server
+│       └── screens/                  # Uses @kitchenpulse/shared Zod schemas
+│
+├── services/
+│   └── ai-agent/                     # PRESERVED: FastAPI Python Microservice
+│       └── app/                      # Gemini 1.5, LangGraph, pgvector RAG
+│
+└── docker-compose.yml                # Orchestrates Next.js + AI Agent + Postgres
+```
+
+---
+
+### 4. Step-by-Step Migration Roadmap (Synchronized with Sprint Week 4)
+
+- [ ] **Phase A (Day 16): Shared Monorepo Package Extraction**
+  - Scaffold `packages/shared/` and configure root `package.json` workspaces.
+  - Extract and consolidate Zod schemas (`auth`, `ticket`, `ingredient`, `supplier_order`).
+  - Build `packages/shared` with `tsup` or TypeScript composite project references.
+- [ ] **Phase B (Day 16-17): Next.js 15 Full-Stack Scaffold & Custom Server**
+  - Initialize Next.js 15 in `web/` with TypeScript, Tailwind CSS, and App Router.
+  - Implement `web/server.ts` embedding Socket.IO into `http.createServer(nextHandler)`.
+  - Validate that real-time `ticket:created` and `stock:alert` events fire reliably on port 3000.
+- [ ] **Phase C (Day 17): Express Routes Migration to Next.js Route Handlers**
+  - Migrate `/api/auth`, `/api/tickets`, `/api/ingredients`, and `/api/supplier-orders` to `web/app/api/*/route.ts`.
+  - Port PostgreSQL connection pool singleton and tenant JWT verification middleware.
+- [ ] **Phase D (Day 18-19): Mobile Client Re-alignment & DRY Verification**
+  - Update `mobile/package.json` to link `"@kitchenpulse/shared": "*"` workspace.
+  - Update `mobile/src/api/client.ts` baseURL to point to Next.js API.
+  - Replace duplicate types in `mobile/src/types/` with shared package imports.
+- [ ] **Phase E (Day 20): Bundle Optimization & Dockerization**
+  - Run `@next/bundle-analyzer` on Next.js to verify client payload reduction.
+  - Update `docker-compose.yml` to run the unified Next.js service alongside FastAPI and PostgreSQL.
+

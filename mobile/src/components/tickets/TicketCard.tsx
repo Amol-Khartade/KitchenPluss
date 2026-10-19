@@ -26,12 +26,14 @@ const STATUS_COLORS: Record<LiveTicket["status"], string> = {
   QUEUE: "#3B82F6",     // blue
   FIRING: "#F59E0B",    // amber
   COMPLETED: "#10B981", // emerald
+  CANCELLED: "#EF4444", // rose
 };
 
 const STATUS_LABELS: Record<LiveTicket["status"], string> = {
   QUEUE: "⏳ QUEUE",
   FIRING: "🔥 FIRING",
   COMPLETED: "✅ DONE",
+  CANCELLED: "🚫 CANCELLED",
 };
 
 interface TicketCardProps {

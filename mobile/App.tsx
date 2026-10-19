@@ -15,6 +15,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { useSocket } from "./src/hooks/useSocket";
 import { useKitchenStore } from "./src/store/useKitchenStore";
@@ -42,12 +43,24 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 ];
 
 function AppContent() {
-  const { isAuthenticated, user, organization, logout } = useAuthStore();
+  const { isAuthenticated, isHydrated, user, organization, logout } = useAuthStore();
   const [activeTab, setActiveTab] = React.useState<Tab>("queue");
   const { stockAlerts, clearAlerts } = useKitchenStore();
 
   // Initialize Socket.IO connection at app root
   useSocket();
+
+  // Wait for MMKV storage rehydration before deciding to show login screen
+  if (!isHydrated) {
+    return (
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color="#38bdf8" />
+        <Text style={{ color: "#94a3b8", fontSize: 12, marginTop: 12, fontFamily: Platform.OS === "ios" ? "Courier" : "monospace" }}>
+          Restoring station session...
+        </Text>
+      </View>
+    );
+  }
 
   // Strict Authentication Guard: Without login, DO NOT show dashboard!
   if (!isAuthenticated) {
