@@ -19,6 +19,7 @@ import { InventoryView } from './components/InventoryView.js';
 import { AiPrepView } from './components/AiPrepView.js';
 import { WasteLogForm } from './components/WasteLogForm.js';
 import { UserManagementView } from './components/UserManagementView.js';
+import { AdminDashboardView } from './components/AdminDashboardView.js';
 import { AuthPortal } from './components/AuthPortal.js';
 import { RecipesManagerView } from './components/RecipesManagerView.js';
 import { useAuth } from './context/AuthContext.js';
@@ -325,6 +326,18 @@ export function App() {
 
         {/* Tab 6: Team & Staff Management (Owner & Admin Only) */}
         {activeTab === 'team' && hasAdminAccess && <UserManagementView />}
+
+        {/* Tab 7: Executive Command & Settings Dashboard (Owner & Admin Only) */}
+        {activeTab === 'dashboard' && hasAdminAccess && (
+          <AdminDashboardView
+            ingredients={ingredients}
+            recipes={recipes}
+            supplierOrders={supplierOrders}
+            foodCostSummaries={foodCostSummaries}
+            tickets={tickets}
+            onNavigate={(tab) => setActiveTab(tab)}
+          />
+        )}
       </main>
 
       {/* New Ticket Modal */}
