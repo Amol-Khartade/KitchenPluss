@@ -33,7 +33,7 @@ export const KdsBoard: React.FC<KdsBoardProps> = ({
   return (
     <div className="space-y-4">
       {/* Mobile/Tablet Column Selector Tabs (hidden on large desktop) */}
-      <div className="flex md:hidden items-center justify-between p-1.5 rounded-2xl glass-panel border border-white/10 gap-1 overflow-x-auto">
+      <div className="flex md:hidden items-center justify-between p-1.5 rounded-2xl bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm gap-1 overflow-x-auto">
         <Button
           variant={mobileColumnFilter === 'ALL' ? 'default' : 'ghost'}
           size="sm"
@@ -49,9 +49,9 @@ export const KdsBoard: React.FC<KdsBoardProps> = ({
           variant={mobileColumnFilter === 'QUEUE' ? 'default' : 'ghost'}
           size="sm"
           onClick={() => setMobileColumnFilter('QUEUE')}
-          className={`flex-1 min-w-[85px] ${mobileColumnFilter === 'QUEUE' ? 'bg-sky-500/25 text-sky-300 border-sky-400/40 hover:bg-sky-500/30' : ''}`}
+          className={`flex-1 min-w-[85px] ${mobileColumnFilter === 'QUEUE' ? 'bg-sky-500 text-white shadow-glow-sky' : ''}`}
         >
-          <Layers className="w-3.5 h-3.5 mr-1.5 text-sky-400" />
+          <Layers className="w-3.5 h-3.5 mr-1.5" />
           <span>Queue</span>
           <Badge variant="default" className="ml-1.5 px-1.5 py-0 text-[10px]">
             {queueTickets.length}
@@ -62,9 +62,9 @@ export const KdsBoard: React.FC<KdsBoardProps> = ({
           variant={mobileColumnFilter === 'FIRING' ? 'warning' : 'ghost'}
           size="sm"
           onClick={() => setMobileColumnFilter('FIRING')}
-          className="flex-1 min-w-[85px]"
+          className={`flex-1 min-w-[85px] ${mobileColumnFilter === 'FIRING' ? 'bg-amber-500 text-slate-950 shadow-glow-amber' : ''}`}
         >
-          <Flame className="w-3.5 h-3.5 mr-1.5 text-amber-400" />
+          <Flame className="w-3.5 h-3.5 mr-1.5" />
           <span>Firing</span>
           <Badge variant="warning" className="ml-1.5 px-1.5 py-0 text-[10px]">
             {firingTickets.length}
@@ -75,9 +75,9 @@ export const KdsBoard: React.FC<KdsBoardProps> = ({
           variant={mobileColumnFilter === 'COMPLETED' ? 'success' : 'ghost'}
           size="sm"
           onClick={() => setMobileColumnFilter('COMPLETED')}
-          className="flex-1 min-w-[85px]"
+          className={`flex-1 min-w-[85px] ${mobileColumnFilter === 'COMPLETED' ? 'bg-emerald-500 text-white shadow-glow-emerald' : ''}`}
         >
-          <CheckCircle className="w-3.5 h-3.5 mr-1.5 text-emerald-400" />
+          <CheckCircle className="w-3.5 h-3.5 mr-1.5" />
           <span>Done</span>
           <Badge variant="success" className="ml-1.5 px-1.5 py-0 text-[10px]">
             {completedTickets.length}
@@ -96,18 +96,18 @@ export const KdsBoard: React.FC<KdsBoardProps> = ({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="flex flex-col glass-panel rounded-2xl border border-sky-500/20 overflow-hidden shadow-glass transition-all h-full"
+              className="flex flex-col bg-neu-surface rounded-2xl border border-sky-500/25 overflow-hidden shadow-neu-raised transition-all h-full"
             >
-              <div className="p-4 border-b border-sky-500/20 flex items-center justify-between bg-sky-950/30 backdrop-blur-xl">
+              <div className="p-4 border-b border-sky-500/20 flex items-center justify-between bg-sky-500/10 dark:bg-sky-950/30">
                 <div className="flex items-center space-x-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-400/30 flex items-center justify-center text-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.2)]">
+                  <div className="w-8 h-8 rounded-xl bg-sky-500/15 border border-sky-400/30 flex items-center justify-center text-sky-600 dark:text-sky-400 shadow-sm">
                     <Layers className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-xs uppercase tracking-wider text-sky-200">
+                    <h3 className="font-bold text-xs uppercase tracking-wider text-sky-800 dark:text-sky-200">
                       Queue / Pending
                     </h3>
-                    <span className="text-[10px] text-slate-400 font-mono">Incoming Orders</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Incoming Orders</span>
                   </div>
                 </div>
                 <Badge variant="default" className="text-xs font-mono shadow-sm">
@@ -115,11 +115,11 @@ export const KdsBoard: React.FC<KdsBoardProps> = ({
                 </Badge>
               </div>
 
-              <div className="flex-1 p-3 overflow-y-auto space-y-3">
+              <div className="flex-1 p-3 overflow-y-auto space-y-3 custom-scrollbar">
                 {queueTickets.length === 0 ? (
-                  <div className="h-44 flex flex-col items-center justify-center text-slate-500 space-y-2">
-                    <Inbox className="w-8 h-8 opacity-30 text-sky-400" />
-                    <p className="text-xs text-slate-400">No pending tickets in queue</p>
+                  <div className="h-44 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 space-y-2">
+                    <Inbox className="w-8 h-8 opacity-40 text-sky-500" />
+                    <p className="text-xs text-slate-500 dark:text-slate-400">No pending tickets in queue</p>
                   </div>
                 ) : (
                   <AnimatePresence>
@@ -152,18 +152,18 @@ export const KdsBoard: React.FC<KdsBoardProps> = ({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="flex flex-col glass-panel rounded-2xl border border-amber-500/30 overflow-hidden shadow-glass ring-1 ring-amber-500/25 transition-all h-full"
+              className="flex flex-col bg-neu-surface rounded-2xl border border-amber-500/40 overflow-hidden shadow-neu-raised ring-1 ring-amber-500/20 transition-all h-full"
             >
-              <div className="p-4 border-b border-amber-500/30 flex items-center justify-between bg-amber-950/30 backdrop-blur-xl">
+              <div className="p-4 border-b border-amber-500/30 flex items-center justify-between bg-amber-500/10 dark:bg-amber-950/30">
                 <div className="flex items-center space-x-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-400/40 flex items-center justify-center text-amber-400 shadow-glow-amber">
-                    <Flame className="w-4 h-4 fill-amber-400 animate-pulse" />
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-glow-amber">
+                    <Flame className="w-4 h-4 fill-amber-500 animate-pulse" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-xs uppercase tracking-wider text-amber-300">
+                    <h3 className="font-bold text-xs uppercase tracking-wider text-amber-800 dark:text-amber-300">
                       Firing / Cooking
                     </h3>
-                    <span className="text-[10px] text-amber-200/70 font-mono">Active on Line</span>
+                    <span className="text-[10px] text-amber-700/70 dark:text-amber-200/70 font-mono">Active on Line</span>
                   </div>
                 </div>
                 <Badge variant="warning" className="text-xs font-mono shadow-sm animate-pulse">
@@ -171,11 +171,11 @@ export const KdsBoard: React.FC<KdsBoardProps> = ({
                 </Badge>
               </div>
 
-              <div className="flex-1 p-3 overflow-y-auto space-y-3">
+              <div className="flex-1 p-3 overflow-y-auto space-y-3 custom-scrollbar">
                 {firingTickets.length === 0 ? (
-                  <div className="h-44 flex flex-col items-center justify-center text-slate-500 space-y-2">
-                    <Flame className="w-8 h-8 opacity-30 text-amber-500" />
-                    <p className="text-xs text-slate-400">No tickets actively firing</p>
+                  <div className="h-44 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 space-y-2">
+                    <Flame className="w-8 h-8 opacity-40 text-amber-500" />
+                    <p className="text-xs text-slate-500 dark:text-slate-400">No tickets actively firing</p>
                   </div>
                 ) : (
                   <AnimatePresence>
@@ -208,18 +208,18 @@ export const KdsBoard: React.FC<KdsBoardProps> = ({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="flex flex-col glass-panel rounded-2xl border border-emerald-500/20 overflow-hidden shadow-glass transition-all h-full"
+              className="flex flex-col bg-neu-surface rounded-2xl border border-emerald-500/25 overflow-hidden shadow-neu-raised transition-all h-full"
             >
-              <div className="p-4 border-b border-emerald-500/20 flex items-center justify-between bg-emerald-950/20 backdrop-blur-xl">
+              <div className="p-4 border-b border-emerald-500/20 flex items-center justify-between bg-emerald-500/10 dark:bg-emerald-950/20">
                 <div className="flex items-center space-x-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-400/30 flex items-center justify-center text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.2)]">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-400/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-sm">
                     <CheckCircle className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-xs uppercase tracking-wider text-emerald-300">
+                    <h3 className="font-bold text-xs uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
                       Expedite / Done
                     </h3>
-                    <span className="text-[10px] text-slate-400 font-mono">Ready for Service</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Ready for Service</span>
                   </div>
                 </div>
                 <Badge variant="success" className="text-xs font-mono shadow-sm">
@@ -227,11 +227,11 @@ export const KdsBoard: React.FC<KdsBoardProps> = ({
                 </Badge>
               </div>
 
-              <div className="flex-1 p-3 overflow-y-auto space-y-3">
+              <div className="flex-1 p-3 overflow-y-auto space-y-3 custom-scrollbar">
                 {completedTickets.length === 0 ? (
-                  <div className="h-44 flex flex-col items-center justify-center text-slate-500 space-y-2">
-                    <CheckCircle className="w-8 h-8 opacity-30 text-emerald-500" />
-                    <p className="text-xs text-slate-400">No fulfilled tickets yet today</p>
+                  <div className="h-44 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 space-y-2">
+                    <CheckCircle className="w-8 h-8 opacity-40 text-emerald-500" />
+                    <p className="text-xs text-slate-500 dark:text-slate-400">No fulfilled tickets yet today</p>
                   </div>
                 ) : (
                   <AnimatePresence>

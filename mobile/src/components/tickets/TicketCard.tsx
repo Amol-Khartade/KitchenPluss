@@ -1,6 +1,6 @@
 // ============================================================
-// KitchenPulse Mobile — Ticket Card Component (Reanimated)
-// Animates smoothly between QUEUE → FIRING → DONE states
+// KitchenPulse Mobile — Tactile Neumorphic Ticket Card (Reanimated)
+// Soft UI extruded surfaces, smooth status transitions & flame glow
 // ============================================================
 
 import React, { useEffect } from "react";
@@ -17,16 +17,18 @@ import Animated, {
   withSpring,
   withSequence,
   withTiming,
+  withRepeat,
   interpolateColor,
   Easing,
 } from "react-native-reanimated";
+import { useTheme } from "../../store/useThemeStore";
 import type { LiveTicket } from "../../types";
 
 const STATUS_COLORS: Record<LiveTicket["status"], string> = {
-  QUEUE: "#3B82F6",     // blue
-  FIRING: "#F59E0B",    // amber
-  COMPLETED: "#10B981", // emerald
-  CANCELLED: "#EF4444", // rose
+  QUEUE: "#0284C7",     // Sky-600 in light, sky-400 in dark
+  FIRING: "#D97706",    // Amber-600
+  COMPLETED: "#059669", // Emerald-600
+  CANCELLED: "#E11D48", // Rose-600
 };
 
 const STATUS_LABELS: Record<LiveTicket["status"], string> = {
@@ -45,67 +47,90 @@ export const TicketCard: React.FC<TicketCardProps> = ({
   ticket,
   onUpdateStatus,
 }) => {
+  const { colors, isDark } = useTheme();
+
   // Animated values
-  const scale = useSharedValue(0.85);
+  const scale = useSharedValue(0.9);
   const opacity = useSharedValue(0);
-  const translateY = useSharedValue(20);
-  const glowOpacity = useSharedValue(0);
+  const translateY = useSharedValue(16);
+  const flameGlow = useSharedValue(0.3);
+  const btnScale = useSharedValue(1);
+
   const statusProgress = useSharedValue(
     ticket.status === "QUEUE" ? 0 : ticket.status === "FIRING" ? 0.5 : 1
   );
 
-  // Entry animation
+  // Mount animation
   useEffect(() => {
     scale.value = withSpring(1, { damping: 14, stiffness: 180 });
-    opacity.value = withTiming(1, { duration: 300, easing: Easing.out(Easing.quad) });
-    translateY.value = withSpring(0, { damping: 12, stiffness: 150 });
+    opacity.value = withTiming(1, { duration: 250, easing: Easing.out(Easing.quad) });
+    translateY.value = withSpring(0, { damping: 14, stiffness: 150 });
   }, []);
 
-  // Status transition animation
+  // Status transitions & FIRING flame pulsing
   useEffect(() => {
     const targetProgress =
       ticket.status === "QUEUE" ? 0 : ticket.status === "FIRING" ? 0.5 : 1;
 
     statusProgress.value = withSpring(targetProgress, {
       damping: 15,
-      stiffness: 120,
+      stiffness: 140,
     });
 
     if (ticket.status === "FIRING") {
-      glowOpacity.value = withSequence(
-        withTiming(1, { duration: 200 }),
-        withTiming(0.4, { duration: 600 }),
-        withTiming(1, { duration: 600 })
+      flameGlow.value = withRepeat(
+        withSequence(
+          withTiming(0.85, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0.25, { duration: 600, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        true
       );
-    } else if (ticket.status === "COMPLETED") {
-      glowOpacity.value = withTiming(0, { duration: 500 });
+    } else {
+      flameGlow.value = withTiming(0, { duration: 300 });
     }
   }, [ticket.status]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }, { translateY: translateY.value }],
-    opacity: opacity.value,
-    borderColor: interpolateColor(
+  const cardBorderAnim = useAnimatedStyle(() => {
+    const activeBorderColor = interpolateColor(
       statusProgress.value,
       [0, 0.5, 1],
-      ["#3B82F6", "#F59E0B", "#10B981"]
-    ),
+      [
+        isDark ? "#38BDF8" : "#0284C7",
+        "#F59E0B",
+        isDark ? "#10B981" : "#059669",
+      ]
+    );
+
+    return {
+      borderColor: activeBorderColor,
+      transform: [{ scale: scale.value }, { translateY: translateY.value }],
+      opacity: opacity.value,
+    };
+  });
+
+  const flameGlowStyle = useAnimatedStyle(() => ({
+    opacity: flameGlow.value,
   }));
 
-  const glowStyle = useAnimatedStyle(() => ({
-    opacity: glowOpacity.value,
-    backgroundColor: interpolateColor(
-      statusProgress.value,
-      [0, 0.5, 1],
-      ["rgba(59,130,246,0.15)", "rgba(245,158,11,0.25)", "rgba(16,185,129,0.15)"]
-    ),
+  const btnAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: btnScale.value }],
   }));
 
-  const statusColor = STATUS_COLORS[ticket.status];
+  const statusColor = isDark
+    ? ticket.status === "QUEUE"
+      ? "#38BDF8"
+      : ticket.status === "FIRING"
+      ? "#F59E0B"
+      : ticket.status === "COMPLETED"
+      ? "#10B981"
+      : "#F43F5E"
+    : STATUS_COLORS[ticket.status];
 
-  // Elapsed time
+  // Elapsed wait time calculation
   const elapsedMs = Date.now() - new Date(ticket.created_at).getTime();
-  const elapsedMin = Math.floor(elapsedMs / 60_000);
+  const elapsedMin = Math.max(0, Math.floor(elapsedMs / 60_000));
+  const isUrgent = elapsedMin >= 15 && ticket.status !== "COMPLETED";
 
   const nextStatus =
     ticket.status === "QUEUE"
@@ -115,60 +140,127 @@ export const TicketCard: React.FC<TicketCardProps> = ({
       : null;
 
   return (
-    <Animated.View style={[styles.card, animatedStyle]}>
-      {/* Glow overlay */}
-      <Animated.View style={[StyleSheet.absoluteFill, styles.glow, glowStyle]} />
+    <Animated.View
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.card,
+          borderColor: colors.border,
+        },
+        colors.shadowRaised,
+        cardBorderAnim,
+      ]}
+    >
+      {/* Flame Glow Layer on Firing Tickets */}
+      {ticket.status === "FIRING" && (
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFill,
+            styles.flameOverlay,
+            { backgroundColor: isDark ? "rgba(245, 158, 11, 0.15)" : "rgba(217, 119, 6, 0.08)" },
+            flameGlowStyle,
+          ]}
+        />
+      )}
 
-      {/* Header */}
+      {/* Header Row: Status Badge & Wait Clock */}
       <View style={styles.header}>
-        <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-          <Text style={styles.statusText}>{STATUS_LABELS[ticket.status]}</Text>
+        <View style={[styles.statusBadge, { backgroundColor: `${statusColor}22`, borderColor: `${statusColor}60` }]}>
+          <Text style={[styles.statusText, { color: statusColor }]}>
+            {STATUS_LABELS[ticket.status]}
+          </Text>
         </View>
-        <Text style={styles.elapsed}>{elapsedMin}m ago</Text>
+
+        <View style={[styles.clockBadge, { backgroundColor: colors.sunken, borderColor: colors.borderSubtle }]}>
+          <Text
+            style={[
+              styles.elapsed,
+              { color: isUrgent ? colors.accentRose : colors.textMuted },
+              isUrgent && { fontWeight: "800" },
+            ]}
+          >
+            ⏱️ T+ {elapsedMin}m
+          </Text>
+        </View>
       </View>
 
       {/* Recipe Name */}
-      <Text style={styles.recipeName}>{ticket.recipe_name ?? "—"}</Text>
+      <Text style={[styles.recipeName, { color: colors.textPrimary }]}>
+        {ticket.recipe_name ?? "Menu Item"}
+      </Text>
 
-      {/* Station */}
-      <Text style={styles.station}>🍳 {ticket.station}</Text>
+      {/* Station & Table Row */}
+      <View style={styles.metaRow}>
+        <View style={[styles.metaPill, { backgroundColor: colors.sunken, borderColor: colors.borderSubtle }]}>
+          <Text style={[styles.stationText, { color: colors.textSecondary }]}>
+            🍳 {ticket.station || "Kitchen Line"}
+          </Text>
+        </View>
 
-      {/* Progress bar */}
-      <View style={styles.progressBg}>
+        {ticket.table_number && (
+          <View style={[styles.metaPill, { backgroundColor: colors.sunken, borderColor: colors.borderSubtle }]}>
+            <Text style={[styles.tableText, { color: colors.accentSky }]}>
+              Table #{ticket.table_number}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* Special Instructions / Notes */}
+      {ticket.notes ? (
+        <View style={[styles.notesContainer, { backgroundColor: colors.sunken, borderColor: colors.borderSubtle }]}>
+          <Text style={[styles.notesText, { color: colors.textSecondary }]} numberOfLines={2}>
+            📝 {ticket.notes}
+          </Text>
+        </View>
+      ) : null}
+
+      {/* Progress Line */}
+      <View style={[styles.progressTrack, { backgroundColor: colors.sunken }]}>
         <Animated.View
           style={[
             styles.progressFill,
             {
-              width: `${(statusProgress.value * 100).toFixed(0)}%` as unknown as number,
+              width: `${Math.round(statusProgress.value * 100)}%` as unknown as number,
               backgroundColor: statusColor,
             },
           ]}
         />
       </View>
 
-      {/* Action button */}
+      {/* Action Button */}
       {nextStatus && (
-        <Pressable
-          style={({ pressed }) => [
-            styles.actionBtn,
-            { backgroundColor: statusColor, opacity: pressed ? 0.75 : 1 },
-          ]}
-          onPress={() => onUpdateStatus(ticket.id, nextStatus)}
-        >
-          <Text style={styles.actionBtnText}>
-            {nextStatus === "FIRING" ? "🔥 Fire It!" : "✅ Mark Done"}
-          </Text>
-        </Pressable>
+        <Animated.View style={btnAnimatedStyle}>
+          <Pressable
+            style={[
+              styles.actionBtn,
+              {
+                backgroundColor: statusColor,
+                borderColor: "rgba(255, 255, 255, 0.3)",
+              },
+              colors.shadowRaisedSm,
+            ]}
+            onPressIn={() => {
+              btnScale.value = withSpring(0.95);
+            }}
+            onPressOut={() => {
+              btnScale.value = withSpring(1);
+            }}
+            onPress={() => onUpdateStatus(ticket.id, nextStatus)}
+          >
+            <Text style={styles.actionBtnText}>
+              {nextStatus === "FIRING" ? "🔥 Fire to Line" : "✅ Mark Completed"}
+            </Text>
+          </Pressable>
+        </Animated.View>
       )}
 
       {ticket.status === "COMPLETED" && ticket.completed_at && (
-        <Text style={styles.completedAt}>
-          Completed at{" "}
-          {new Date(ticket.completed_at).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </Text>
+        <View style={[styles.completedBanner, { backgroundColor: colors.accentEmeraldBg, borderColor: `${colors.accentEmerald}40` }]}>
+          <Text style={[styles.completedAt, { color: colors.accentEmerald }]}>
+            ✨ Finished at {new Date(ticket.completed_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          </Text>
+        </View>
       )}
     </Animated.View>
   );
@@ -176,63 +268,84 @@ export const TicketCard: React.FC<TicketCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "rgba(18, 26, 44, 0.75)",
-    borderRadius: 18,
+    borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: "rgba(255, 255, 255, 0.12)",
-    padding: 14,
-    marginVertical: 6,
-    marginHorizontal: 2,
+    padding: 15,
+    marginVertical: 7,
+    marginHorizontal: 3,
     overflow: "hidden",
-    minHeight: 150,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
+    position: "relative",
   } as ViewStyle,
-  glow: {
-    borderRadius: 16,
+  flameOverlay: {
+    borderRadius: 18,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 10,
   },
   statusBadge: {
-    paddingHorizontal: 9,
-    paddingVertical: 3.5,
-    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+    borderWidth: 1,
   },
   statusText: {
-    color: "#FFFFFF",
     fontSize: 10,
-    fontWeight: "800",
+    fontWeight: "900",
     letterSpacing: 0.6,
   },
+  clockBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
   elapsed: {
-    color: "#94A3B8",
     fontSize: 11,
-    fontWeight: "600",
+    fontWeight: "700",
     fontVariant: ["tabular-nums"],
   },
   recipeName: {
-    color: "#F8FAFC",
-    fontSize: 16,
-    fontWeight: "800",
-    marginBottom: 4,
-    letterSpacing: -0.2,
+    fontSize: 17,
+    fontWeight: "900",
+    marginBottom: 8,
+    letterSpacing: -0.3,
   },
-  station: {
-    color: "#94A3B8",
-    fontSize: 12,
-    fontWeight: "500",
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
     marginBottom: 10,
   },
-  progressBg: {
+  metaPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  stationText: {
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  tableText: {
+    fontSize: 11,
+    fontWeight: "800",
+  },
+  notesContainer: {
+    padding: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  notesText: {
+    fontSize: 11,
+    fontStyle: "italic",
+    lineHeight: 15,
+  },
+  progressTrack: {
     height: 4,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
     borderRadius: 2,
     marginBottom: 12,
     overflow: "hidden",
@@ -243,26 +356,27 @@ const styles = StyleSheet.create({
   },
   actionBtn: {
     borderRadius: 12,
+    borderWidth: 1,
     minHeight: 46,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 2,
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
   },
   actionBtnText: {
     color: "#FFFFFF",
-    fontWeight: "800",
+    fontWeight: "900",
     fontSize: 13,
-    letterSpacing: 0.3,
+    letterSpacing: 0.4,
+  },
+  completedBanner: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 4,
+    alignItems: "center",
   },
   completedAt: {
-    color: "#34D399",
     fontSize: 11,
-    fontWeight: "600",
-    textAlign: "center",
-    marginTop: 6,
+    fontWeight: "800",
   },
 });

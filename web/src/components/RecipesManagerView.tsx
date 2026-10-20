@@ -1,9 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   UtensilsCrossed,
-  Plus,
   Trash2,
-  DollarSign,
   Clock,
   Layers,
   ChevronDown,
@@ -13,8 +11,6 @@ import {
   Flame,
   Salad,
   CakeSlice,
-  Tag,
-  AlertCircle,
   Sparkles,
 } from 'lucide-react';
 import { Recipe, Ingredient } from '../types/index.js';
@@ -115,6 +111,7 @@ export const RecipesManagerView: React.FC<RecipesManagerViewProps> = ({
       ingredients: data.ingredients,
     });
     await onRefresh();
+    setIsNewModalOpen(false);
   };
 
   const handleDeleteRecipe = async (id: string, name: string) => {
@@ -123,7 +120,7 @@ export const RecipesManagerView: React.FC<RecipesManagerViewProps> = ({
     try {
       await recipesApi.delete(id);
       await onRefresh();
-    } catch (err) {
+    } catch {
       alert('Failed to delete recipe');
     } finally {
       setDeletingId(null);
@@ -133,29 +130,29 @@ export const RecipesManagerView: React.FC<RecipesManagerViewProps> = ({
   const getCategoryIcon = (cat: string) => {
     const lower = cat.toLowerCase();
     if (lower.includes('drink') || lower.includes('bar') || lower.includes('beverage')) {
-      return <Wine className="w-4 h-4 text-purple-400" />;
+      return <Wine className="w-4 h-4 text-purple-500 dark:text-purple-400" />;
     }
     if (lower.includes('starter') || lower.includes('appetizer') || lower.includes('salad')) {
-      return <Salad className="w-4 h-4 text-emerald-400" />;
+      return <Salad className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />;
     }
     if (lower.includes('dessert') || lower.includes('sweet')) {
-      return <CakeSlice className="w-4 h-4 text-pink-400" />;
+      return <CakeSlice className="w-4 h-4 text-pink-500 dark:text-pink-400" />;
     }
-    return <Flame className="w-4 h-4 text-amber-400" />;
+    return <Flame className="w-4 h-4 text-amber-500 dark:text-amber-400" />;
   };
 
   return (
     <div className="space-y-6">
       {/* Top Banner / Actions */}
-      <div className="glass-panel rounded-2xl p-6 border border-white/10 shadow-glass flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-neu-surface rounded-2xl p-6 border border-neu-border shadow-neu-raised flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/15 border border-purple-400/30 flex items-center justify-center text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.25)]">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/15 border border-purple-400/30 flex items-center justify-center text-purple-600 dark:text-purple-400 shadow-sm">
               <UtensilsCrossed className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white tracking-tight">Menu & Recipes Catalog</h2>
-              <p className="text-xs text-slate-400">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Menu & Recipes Catalog</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Manage dishes, drinks, starters, and their Bill of Materials (BOM) stock requirements
               </p>
             </div>
@@ -166,7 +163,7 @@ export const RecipesManagerView: React.FC<RecipesManagerViewProps> = ({
           {hasAdminAccess && (
             <button
               onClick={() => setIsNewModalOpen(true)}
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 via-indigo-600 to-sky-500 hover:from-purple-400 hover:to-sky-400 text-white text-xs font-semibold shadow-lg shadow-purple-500/25 flex items-center space-x-2 transition-all active:scale-[0.98]"
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-sky-600 hover:from-purple-500 hover:to-sky-500 text-white text-xs font-semibold shadow-md flex items-center space-x-2 transition-all active:scale-[0.98] cursor-pointer"
             >
               <Sparkles className="w-4 h-4 text-amber-300" />
               <span>Add Dish & Ingredients (AI / Manual)</span>
@@ -181,10 +178,10 @@ export const RecipesManagerView: React.FC<RecipesManagerViewProps> = ({
         <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 max-w-full">
           <button
             onClick={() => setSelectedCategory('ALL')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1.5 whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer active:scale-95 ${
               selectedCategory === 'ALL'
-                ? 'bg-white text-slate-900 shadow-md'
-                : 'glass-panel text-slate-400 hover:text-white border border-white/5'
+                ? 'bg-gradient-to-r from-sky-500 to-sky-600 text-white shadow-glow-sky border border-sky-400/30'
+                : 'bg-neu-surface text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-neu-border shadow-neu-raised-sm hover:shadow-neu-raised'
             }`}
           >
             <span>All Items ({recipes.length})</span>
@@ -193,10 +190,10 @@ export const RecipesManagerView: React.FC<RecipesManagerViewProps> = ({
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1.5 whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 whitespace-nowrap cursor-pointer active:scale-95 ${
                 selectedCategory === cat
-                  ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/25 border border-purple-400'
-                  : 'glass-panel text-slate-400 hover:text-white border border-white/5'
+                  ? 'bg-purple-600 text-white shadow-glow-purple border border-purple-400/40'
+                  : 'bg-neu-surface text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-neu-border shadow-neu-raised-sm hover:shadow-neu-raised'
               }`}
             >
               {getCategoryIcon(cat)}
@@ -213,7 +210,7 @@ export const RecipesManagerView: React.FC<RecipesManagerViewProps> = ({
             placeholder="Search dish or drink..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3.5 py-1.5 rounded-xl bg-slate-900/80 border border-white/10 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-purple-500"
+            className="w-full pl-9 pr-3.5 py-1.5 rounded-xl bg-neu-sunken border border-neu-borderSubtle text-slate-900 dark:text-white text-xs placeholder-slate-400 shadow-neu-inset-sm focus:outline-none focus:border-purple-500"
           />
         </div>
       </div>
@@ -229,41 +226,41 @@ export const RecipesManagerView: React.FC<RecipesManagerViewProps> = ({
           return (
             <div
               key={recipe.id}
-              className="glass-panel rounded-2xl p-5 border border-white/10 shadow-glass flex flex-col justify-between transition-all hover:border-purple-500/30"
+              className="bg-neu-card rounded-2xl p-5 border border-neu-border shadow-neu-raised-sm hover:shadow-neu-raised flex flex-col justify-between transition-all"
             >
               <div>
                 {/* Station Tag & Price */}
                 <div className="flex items-center justify-between mb-2.5">
-                  <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] font-medium text-slate-300 flex items-center space-x-1.5">
+                  <span className="px-2.5 py-1 rounded-lg bg-neu-sunken border border-neu-borderSubtle text-[11px] font-semibold text-slate-700 dark:text-slate-300 flex items-center space-x-1.5 shadow-neu-inset-sm">
                     {getCategoryIcon(recipe.station)}
                     <span>{recipe.station}</span>
                   </span>
-                  <span className="text-base font-bold text-emerald-400 font-mono">
+                  <span className="text-base font-bold text-emerald-600 dark:text-emerald-400 font-mono">
                     ${Number(recipe.sale_price ?? recipe.price ?? 0).toFixed(2)}
                   </span>
                 </div>
 
                 {/* Name */}
-                <h3 className="text-base font-bold text-white tracking-tight mb-1">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight mb-1">
                   {recipeName}
                 </h3>
 
                 {/* Prep Time */}
-                <div className="flex items-center space-x-3 text-xs text-slate-400 mb-4 font-mono">
+                <div className="flex items-center space-x-3 text-xs text-slate-500 dark:text-slate-400 mb-4 font-mono">
                   <span className="flex items-center space-x-1">
-                    <Clock className="w-3.5 h-3.5 text-amber-400" />
+                    <Clock className="w-3.5 h-3.5 text-amber-500" />
                     <span>{recipe.prep_time_minutes || 15}m prep</span>
                   </span>
                 </div>
 
                 {/* BOM Collapsible Details */}
-                <div className="pt-3 border-t border-white/5">
+                <div className="pt-3 border-t border-neu-borderSubtle">
                   <button
                     onClick={() => toggleExpand(recipe.id)}
-                    className="w-full flex items-center justify-between text-xs text-purple-300 hover:text-purple-200 transition-colors font-semibold"
+                    className="w-full flex items-center justify-between text-xs text-purple-700 dark:text-purple-300 hover:underline transition-colors font-semibold cursor-pointer"
                   >
                     <span className="flex items-center space-x-1.5">
-                      <Layers className="w-3.5 h-3.5 text-purple-400" />
+                      <Layers className="w-3.5 h-3.5 text-purple-500" />
                       <span>Required Ingredients (BOM)</span>
                     </span>
                     {isExpanded ? (
@@ -274,7 +271,7 @@ export const RecipesManagerView: React.FC<RecipesManagerViewProps> = ({
                   </button>
 
                   {isExpanded && (
-                    <div className="mt-3 p-3 rounded-xl bg-slate-950/70 border border-white/5 space-y-2 animate-fade-in text-xs">
+                    <div className="mt-3 p-3 rounded-xl bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm space-y-2 animate-fade-in text-xs">
                       {isLoadingBom ? (
                         <p className="text-slate-400 text-xs italic">Loading bill of materials...</p>
                       ) : bomList.length === 0 ? (
@@ -286,10 +283,10 @@ export const RecipesManagerView: React.FC<RecipesManagerViewProps> = ({
                           {bomList.map((ing, idx) => (
                             <div
                               key={idx}
-                              className="flex items-center justify-between text-[11px] font-mono text-slate-300 py-0.5 border-b border-white/5 last:border-0"
+                              className="flex items-center justify-between text-[11px] font-mono text-slate-700 dark:text-slate-300 py-0.5 border-b border-neu-borderSubtle last:border-0"
                             >
                               <span>{ing.ingredient_name || ing.name}</span>
-                              <span className="text-purple-300 font-semibold">
+                              <span className="text-purple-600 dark:text-purple-300 font-semibold">
                                 {ing.quantity_required} {ing.unit}
                               </span>
                             </div>
@@ -302,11 +299,11 @@ export const RecipesManagerView: React.FC<RecipesManagerViewProps> = ({
               </div>
 
               {/* Card Footer Actions */}
-              <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between">
+              <div className="mt-5 pt-3 border-t border-neu-borderSubtle flex items-center justify-between">
                 {onFireTicket && (
                   <button
                     onClick={() => onFireTicket(recipe.id, recipe.station)}
-                    className="px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/25 text-xs font-semibold flex items-center space-x-1.5 transition-all"
+                    className="px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25 text-xs font-semibold flex items-center space-x-1.5 transition-all shadow-sm active:scale-95 cursor-pointer"
                   >
                     <Flame className="w-3.5 h-3.5" />
                     <span>Fire KDS Ticket</span>
@@ -317,7 +314,7 @@ export const RecipesManagerView: React.FC<RecipesManagerViewProps> = ({
                   <button
                     disabled={deletingId === recipe.id}
                     onClick={() => handleDeleteRecipe(recipe.id, recipeName)}
-                    className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/30 transition-colors ml-auto"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 transition-colors ml-auto cursor-pointer"
                     title="Delete dish"
                   >
                     <Trash2 className="w-4 h-4" />

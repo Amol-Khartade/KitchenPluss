@@ -8,15 +8,16 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-transparent bg-sky-950/80 text-sky-300 shadow hover:bg-sky-900/80",
+          "border-sky-500/20 bg-sky-500/15 text-sky-700 dark:text-sky-300 shadow-sm",
         secondary:
-          "border-transparent bg-slate-800 text-slate-100 hover:bg-slate-700",
+          "border-neu-borderSubtle bg-neu-sunken text-slate-700 dark:text-slate-300 shadow-neu-inset-sm",
         destructive:
-          "border-transparent bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30",
-        outline: "text-foreground",
-        glass: "bg-slate-900/60 border-white/10 text-slate-200 backdrop-blur-md",
-        success: "border-transparent bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 shadow-[0_0_8px_rgba(16,185,129,0.3)]",
-        warning: "border-transparent bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 shadow-[0_0_8px_rgba(245,158,11,0.3)]",
+          "border-rose-500/30 bg-rose-500/15 text-rose-700 dark:text-rose-300 shadow-sm",
+        outline: "border-neu-border text-slate-700 dark:text-slate-200",
+        glass: "bg-neu-surface border-neu-border text-slate-700 dark:text-slate-200 shadow-neu-raised-sm",
+        success: "border-emerald-500/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 shadow-sm",
+        warning: "border-amber-500/30 bg-amber-500/15 text-amber-700 dark:text-amber-300 shadow-sm",
+        firing: "border-amber-500/40 bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-800 dark:text-amber-300 shadow-glow-amber",
       },
     },
     defaultVariants: {

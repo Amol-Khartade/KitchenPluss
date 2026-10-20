@@ -1,6 +1,6 @@
 // ============================================================
-// KitchenPulse Mobile — End of Day Waste Form
-// Zod validation, multi-recipe waste entries
+// KitchenPulse Mobile — End of Day Scrap & Waste Form
+// Zod validation, tactile Neumorphic inputs, stepper buttons
 // ============================================================
 
 import React, { useState } from "react";
@@ -13,10 +13,12 @@ import {
   Pressable,
   Alert,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import { z } from "zod";
 import { useRecipes } from "../hooks/useQueries";
 import { useLogWaste } from "../hooks/useQueries";
+import { useTheme } from "../store/useThemeStore";
 import type { WasteFormEntry, Recipe } from "../types";
 
 // ── Zod Schema ─────────────────────────────────────────────
@@ -40,7 +42,7 @@ const wasteFormSchema = z
   .refine(
     (entries) =>
       entries.every((e) => e.waste_qty <= e.prepped_qty),
-    "Waste cannot exceed prepped quantity"
+    "Waste quantity cannot exceed prepped quantity"
   );
 
 // ── Component ──────────────────────────────────────────────
@@ -48,6 +50,7 @@ const wasteFormSchema = z
 export default function WasteFormScreen() {
   const { data: recipes, isLoading: recipesLoading } = useRecipes();
   const logWaste = useLogWaste();
+  const { colors } = useTheme();
 
   const [entries, setEntries] = useState<WasteFormEntry[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -86,6 +89,12 @@ export default function WasteFormScreen() {
     });
   };
 
+  const handleAdjust = (idx: number, field: "prepped_qty" | "waste_qty", delta: number) => {
+    const current = Number(entries[idx]?.[field]) || 0;
+    const nextVal = Math.max(0, current + delta);
+    updateEntry(idx, field, nextVal);
+  };
+
   const handleSubmit = async () => {
     // Only submit entries with non-zero prepped qty
     const activeEntries = entries.filter((e) => e.prepped_qty > 0);
@@ -113,7 +122,7 @@ export default function WasteFormScreen() {
       setSubmitted(true);
       Alert.alert(
         "✅ Submitted",
-        `${activeEntries.length} recipe entries logged successfully.`,
+        `${activeEntries.length} recipe shift entries logged successfully.`,
         [{ text: "OK", onPress: () => setSubmitted(false) }]
       );
     } catch (err) {
@@ -123,21 +132,21 @@ export default function WasteFormScreen() {
 
   if (recipesLoading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#3B82F6" />
-        <Text style={styles.loadingText}>Loading recipes...</Text>
+      <View style={[styles.centered, { backgroundColor: colors.base }]}>
+        <ActivityIndicator size="large" color={colors.accentSky} />
+        <Text style={[styles.loadingText, { color: colors.textMuted }]}>Loading menu items & recipes...</Text>
       </View>
     );
   }
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.base }]}
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >
-      <Text style={styles.title}>📋 End of Day Waste Log</Text>
-      <Text style={styles.subtitle}>
+      <Text style={[styles.title, { color: colors.textPrimary }]}>📋 End of Shift Scrap Log</Text>
+      <Text style={[styles.subtitle, { color: colors.textMuted }]}>
         {new Date().toLocaleDateString("en-US", {
           weekday: "long",
           year: "numeric",
@@ -146,90 +155,151 @@ export default function WasteFormScreen() {
         })}
       </Text>
 
-      {entries.map((entry, idx) => (
-        <View key={entry.recipe_id} style={styles.card}>
-          <Text style={styles.recipeName}>{entry.recipe_name}</Text>
+      {entries.map((entry, idx) => {
+        const wasteRatio = entry.prepped_qty > 0 ? entry.waste_qty / entry.prepped_qty : 0;
+        const isHighWaste = wasteRatio > 0.2;
 
-          <View style={styles.row}>
-            <View style={styles.field}>
-              <Text style={styles.label}>Prepped Qty</Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  errors[`${idx}.prepped_qty`] ? styles.inputError : null,
-                ]}
-                value={entry.prepped_qty === 0 ? "" : String(entry.prepped_qty)}
-                onChangeText={(v) =>
-                  updateEntry(idx, "prepped_qty", parseInt(v, 10) || 0)
-                }
-                keyboardType="numeric"
-                placeholder="0"
-                placeholderTextColor="#475569"
-              />
-              {errors[`${idx}.prepped_qty`] && (
-                <Text style={styles.errorText}>{errors[`${idx}.prepped_qty`]}</Text>
+        return (
+          <View
+            key={entry.recipe_id}
+            style={[
+              styles.card,
+              {
+                backgroundColor: colors.card,
+                borderColor: isHighWaste ? colors.accentRose : colors.border,
+              },
+              colors.shadowRaised,
+            ]}
+          >
+            <View style={styles.cardHeader}>
+              <Text style={[styles.recipeName, { color: colors.textPrimary }]}>{entry.recipe_name}</Text>
+              {entry.prepped_qty > 0 && (
+                <View
+                  style={[
+                    styles.wastePill,
+                    {
+                      backgroundColor: isHighWaste ? colors.accentRoseBg : colors.accentEmeraldBg,
+                      borderColor: isHighWaste ? colors.accentRose : colors.accentEmerald,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.wastePercent,
+                      { color: isHighWaste ? colors.accentRose : colors.accentEmerald },
+                    ]}
+                  >
+                    Waste: {(wasteRatio * 100).toFixed(1)}% {isHighWaste ? "⚠️" : "✓"}
+                  </Text>
+                </View>
               )}
             </View>
 
-            <View style={styles.field}>
-              <Text style={styles.label}>Waste Qty</Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  errors[`${idx}.waste_qty`] ? styles.inputError : null,
-                ]}
-                value={entry.waste_qty === 0 ? "" : String(entry.waste_qty)}
-                onChangeText={(v) =>
-                  updateEntry(idx, "waste_qty", parseInt(v, 10) || 0)
-                }
-                keyboardType="numeric"
-                placeholder="0"
-                placeholderTextColor="#475569"
-              />
-              {errors[`${idx}.waste_qty`] && (
-                <Text style={styles.errorText}>{errors[`${idx}.waste_qty`]}</Text>
-              )}
-            </View>
-          </View>
+            <View style={styles.row}>
+              {/* Prepped Qty Field */}
+              <View style={styles.field}>
+                <Text style={[styles.label, { color: colors.textMuted }]}>Prepped Portions</Text>
+                <View style={[styles.stepperContainer, { backgroundColor: colors.sunken, borderColor: colors.borderSubtle }]}>
+                  <TouchableOpacity
+                    style={[styles.stepBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+                    onPress={() => handleAdjust(idx, "prepped_qty", -1)}
+                  >
+                    <Text style={[styles.stepBtnText, { color: colors.textPrimary }]}>−</Text>
+                  </TouchableOpacity>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      { color: colors.textPrimary },
+                      errors[`${idx}.prepped_qty`] ? { borderColor: colors.accentRose } : null,
+                    ]}
+                    value={entry.prepped_qty === 0 ? "" : String(entry.prepped_qty)}
+                    onChangeText={(v) =>
+                      updateEntry(idx, "prepped_qty", parseInt(v, 10) || 0)
+                    }
+                    keyboardType="numeric"
+                    placeholder="0"
+                    placeholderTextColor={colors.textMuted}
+                  />
+                  <TouchableOpacity
+                    style={[styles.stepBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+                    onPress={() => handleAdjust(idx, "prepped_qty", 1)}
+                  >
+                    <Text style={[styles.stepBtnText, { color: colors.textPrimary }]}>+</Text>
+                  </TouchableOpacity>
+                </View>
+                {errors[`${idx}.prepped_qty`] && (
+                  <Text style={[styles.errorText, { color: colors.accentRose }]}>{errors[`${idx}.prepped_qty`]}</Text>
+                )}
+              </View>
 
-          {/* Waste % indicator */}
-          {entry.prepped_qty > 0 && (
-            <Text
+              {/* Waste Qty Field */}
+              <View style={styles.field}>
+                <Text style={[styles.label, { color: colors.textMuted }]}>Scrapped / Waste</Text>
+                <View style={[styles.stepperContainer, { backgroundColor: colors.sunken, borderColor: colors.borderSubtle }]}>
+                  <TouchableOpacity
+                    style={[styles.stepBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+                    onPress={() => handleAdjust(idx, "waste_qty", -1)}
+                  >
+                    <Text style={[styles.stepBtnText, { color: colors.textPrimary }]}>−</Text>
+                  </TouchableOpacity>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      { color: colors.textPrimary },
+                      errors[`${idx}.waste_qty`] ? { borderColor: colors.accentRose } : null,
+                    ]}
+                    value={entry.waste_qty === 0 ? "" : String(entry.waste_qty)}
+                    onChangeText={(v) =>
+                      updateEntry(idx, "waste_qty", parseInt(v, 10) || 0)
+                    }
+                    keyboardType="numeric"
+                    placeholder="0"
+                    placeholderTextColor={colors.textMuted}
+                  />
+                  <TouchableOpacity
+                    style={[styles.stepBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+                    onPress={() => handleAdjust(idx, "waste_qty", 1)}
+                  >
+                    <Text style={[styles.stepBtnText, { color: colors.textPrimary }]}>+</Text>
+                  </TouchableOpacity>
+                </View>
+                {errors[`${idx}.waste_qty`] && (
+                  <Text style={[styles.errorText, { color: colors.accentRose }]}>{errors[`${idx}.waste_qty`]}</Text>
+                )}
+              </View>
+            </View>
+
+            {/* Notes Inset Input */}
+            <TextInput
               style={[
-                styles.wastePercent,
+                styles.notesInput,
                 {
-                  color:
-                    entry.waste_qty / entry.prepped_qty > 0.2
-                      ? "#EF4444"
-                      : "#10B981",
+                  backgroundColor: colors.sunken,
+                  borderColor: colors.borderSubtle,
+                  color: colors.textPrimary,
                 },
               ]}
-            >
-              Waste:{" "}
-              {((entry.waste_qty / entry.prepped_qty) * 100).toFixed(1)}%
-              {entry.waste_qty / entry.prepped_qty > 0.2 ? " ⚠️" : " ✓"}
-            </Text>
-          )}
+              value={entry.notes}
+              onChangeText={(v) => updateEntry(idx, "notes", v)}
+              placeholder="Shift notes (e.g. dropped on floor, overcooked, customer comp)..."
+              placeholderTextColor={colors.textMuted}
+              multiline
+              maxLength={500}
+            />
+          </View>
+        );
+      })}
 
-          <TextInput
-            style={styles.notesInput}
-            value={entry.notes}
-            onChangeText={(v) => updateEntry(idx, "notes", v)}
-            placeholder="Notes (optional)"
-            placeholderTextColor="#475569"
-            multiline
-            maxLength={500}
-          />
-        </View>
-      ))}
-
+      {/* Submit Button */}
       <Pressable
         style={({ pressed }) => [
           styles.submitBtn,
           {
-            opacity: pressed || logWaste.isPending ? 0.75 : 1,
-            backgroundColor: submitted ? "#10B981" : "#3B82F6",
+            opacity: pressed || logWaste.isPending ? 0.8 : 1,
+            backgroundColor: submitted ? colors.accentEmerald : colors.accentSky,
+            borderColor: "rgba(255, 255, 255, 0.3)",
           },
+          colors.shadowRaisedLg,
         ]}
         onPress={handleSubmit}
         disabled={logWaste.isPending}
@@ -238,7 +308,7 @@ export default function WasteFormScreen() {
           <ActivityIndicator color="#FFFFFF" />
         ) : (
           <Text style={styles.submitBtnText}>
-            {submitted ? "✅ Submitted!" : "Submit End of Day Log"}
+            {submitted ? "✅ Log Submitted Successfully!" : "Submit Shift Scrap Log"}
           </Text>
         )}
       </Pressable>
@@ -249,53 +319,59 @@ export default function WasteFormScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#070B14",
   },
   content: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 40,
+    paddingBottom: 48,
   },
   centered: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#070B14",
     gap: 12,
   },
   loadingText: {
-    color: "#94A3B8",
     fontSize: 14,
+    fontWeight: "700",
   },
   title: {
-    color: "#F8FAFC",
     fontSize: 20,
     fontWeight: "900",
     letterSpacing: -0.3,
     marginBottom: 2,
   },
   subtitle: {
-    color: "#94A3B8",
     fontSize: 12,
-    marginBottom: 20,
+    marginBottom: 18,
+    fontWeight: "500",
   },
   card: {
-    backgroundColor: "rgba(18, 26, 44, 0.72)",
-    borderRadius: 18,
+    borderRadius: 20,
     padding: 16,
+    marginBottom: 14,
+    borderWidth: 1.5,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 3,
   },
   recipeName: {
-    color: "#F8FAFC",
-    fontSize: 15,
+    fontSize: 16,
+    fontWeight: "900",
+    flex: 1,
+  },
+  wastePill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  wastePercent: {
+    fontSize: 11,
     fontWeight: "800",
-    marginBottom: 12,
   },
   row: {
     flexDirection: "row",
@@ -305,64 +381,64 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   label: {
-    color: "#94A3B8",
     fontSize: 11,
     marginBottom: 6,
     fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
-  input: {
-    backgroundColor: "rgba(255, 255, 255, 0.04)",
+  stepperContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.12)",
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    color: "#F8FAFC",
-    fontSize: 15,
-    fontWeight: "700",
+    padding: 3,
   },
-  inputError: {
-    borderColor: "rgba(239, 68, 68, 0.7)",
+  stepBtn: {
+    width: 32,
+    height: 34,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepBtnText: {
+    fontSize: 18,
+    fontWeight: "800",
+    lineHeight: 20,
+  },
+  input: {
+    flex: 1,
+    textAlign: "center",
+    fontSize: 16,
+    fontWeight: "900",
+    paddingVertical: 6,
   },
   errorText: {
-    color: "#FCA5A5",
     fontSize: 10,
     marginTop: 4,
-    fontWeight: "600",
-  },
-  wastePercent: {
-    fontSize: 12,
     fontWeight: "700",
-    marginTop: 8,
   },
   notesInput: {
-    marginTop: 10,
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
+    marginTop: 12,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
     borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    color: "#CBD5E1",
+    paddingVertical: 9,
     fontSize: 12,
-    minHeight: 52,
+    minHeight: 48,
   },
   submitBtn: {
-    marginTop: 20,
-    borderRadius: 14,
+    marginTop: 16,
+    borderRadius: 16,
+    borderWidth: 1,
     paddingVertical: 14,
     alignItems: "center",
-    backgroundColor: "#0284C7",
-    shadowColor: "#38BDF8",
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 4,
   },
   submitBtnText: {
     color: "#FFFFFF",
     fontSize: 15,
-    fontWeight: "800",
+    fontWeight: "900",
+    letterSpacing: 0.3,
   },
 });

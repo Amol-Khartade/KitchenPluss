@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   X,
   UtensilsCrossed,
-  Plus,
   Trash2,
   DollarSign,
   Clock,
@@ -13,8 +12,6 @@ import {
   PackagePlus,
   CheckCircle2,
   RefreshCw,
-  Flame,
-  ArrowRight,
 } from 'lucide-react';
 import { Ingredient } from '../types/index.js';
 import { recipesApi } from '../api/client.js';
@@ -279,7 +276,6 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
   const grossMarginPct = salePriceNum > 0 ? ((grossMargin / salePriceNum) * 100).toFixed(1) : '0.0';
 
   const newIngredientsCount = ingredientRows.filter((r) => r.is_new).length;
-  const existingIngredientsCount = ingredientRows.filter((r) => !r.is_new).length;
 
   // ---------------------------------------------------------------- //
   // Submit Handler
@@ -336,22 +332,22 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
-      <div className="glass-panel border border-white/15 rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden backdrop-blur-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
+      <div className="bg-neu-surface border border-neu-border rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-neu-raised-lg overflow-hidden">
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-5 border-b border-white/10 bg-slate-900/80">
+        <div className="flex items-center justify-between p-5 border-b border-neu-borderSubtle bg-neu-card/70">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500/20 via-indigo-500/20 to-amber-500/20 border border-sky-400/40 flex items-center justify-center text-sky-400 shadow-glow-sky">
-              <UtensilsCrossed className="w-5 h-5 text-sky-400" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500/20 via-indigo-500/20 to-amber-500/20 border border-sky-400/40 flex items-center justify-center text-sky-500 shadow-sm">
+              <UtensilsCrossed className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-100 flex items-center space-x-2">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center space-x-2">
                 <span>Add Dish, Drink & Ingredients</span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-300 font-mono">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-700 dark:text-sky-300 font-mono">
                   BOM Engine
                 </span>
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 AI auto-generates ingredients & seeds inventory, or create recipes manually.
               </p>
             </div>
@@ -359,26 +355,26 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Mode Selector Tabs */}
-        <div className="flex border-b border-white/10 bg-slate-950/60 px-5 pt-3">
+        <div className="flex border-b border-neu-borderSubtle bg-neu-sunken/30 px-5 pt-3">
           <button
             type="button"
             onClick={() => setActiveMode('ai')}
-            className={`pb-3 px-4 text-xs font-semibold flex items-center space-x-2 border-b-2 transition-all ${
+            className={`pb-3 px-4 text-xs font-semibold flex items-center space-x-2 border-b-2 transition-all cursor-pointer ${
               activeMode === 'ai'
-                ? 'border-sky-500 text-sky-400 shadow-glow-sky'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-sky-500 text-sky-600 dark:text-sky-400'
+                : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
-            <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+            <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
             <span>AI Dish & Ingredients Generator</span>
-            <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[10px]">
+            <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-800 dark:text-amber-300 text-[10px] font-bold">
               Gemini Powered
             </span>
           </button>
@@ -386,10 +382,10 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
           <button
             type="button"
             onClick={() => setActiveMode('manual')}
-            className={`pb-3 px-4 text-xs font-semibold flex items-center space-x-2 border-b-2 transition-all ${
+            className={`pb-3 px-4 text-xs font-semibold flex items-center space-x-2 border-b-2 transition-all cursor-pointer ${
               activeMode === 'manual'
-                ? 'border-sky-500 text-sky-400 shadow-glow-sky'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-sky-500 text-sky-600 dark:text-sky-400'
+                : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
             <Layers className="w-4 h-4 text-slate-400" />
@@ -400,28 +396,28 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
         {/* Modal Scrollable Content */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-6">
           {error && (
-            <div className="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center space-x-2 animate-in fade-in">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+            <div className="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-800 dark:text-rose-300 text-xs flex items-center space-x-2 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
               <span>{error}</span>
             </div>
           )}
 
           {successInfo && (
-            <div className="p-3.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs flex items-center space-x-2 animate-in fade-in">
-              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+            <div className="p-3.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs flex items-center space-x-2 animate-in fade-in">
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
               <span>{successInfo}</span>
             </div>
           )}
 
           {/* AI PROMPT SECTION */}
           {activeMode === 'ai' && (
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-sky-950/30 via-slate-900/60 to-indigo-950/20 border border-sky-500/30 space-y-4 shadow-lg">
+            <div className="p-4 rounded-2xl bg-neu-card border border-sky-500/30 space-y-4 shadow-neu-raised-sm">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-sky-300 uppercase tracking-wider flex items-center space-x-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span className="text-xs font-bold text-sky-700 dark:text-sky-300 uppercase tracking-wider flex items-center space-x-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                   <span>Type Dish Prompt for Instant Extraction</span>
                 </span>
-                <span className="text-[11px] text-slate-400">
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">
                   Adds missing ingredients to stock + creates recipe BOM
                 </span>
               </div>
@@ -433,7 +429,7 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
                     value={aiPrompt}
                     onChange={(e) => setAiPrompt(e.target.value)}
                     placeholder="e.g. Chicken Masala Handi, Truffle Tagliatelle, Classic Mojito..."
-                    className="w-full bg-slate-950/80 border border-sky-500/40 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all font-medium"
+                    className="w-full bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all font-medium"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -446,7 +442,7 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
                 <select
                   value={aiStationHint}
                   onChange={(e) => setAiStationHint(e.target.value)}
-                  className="bg-slate-950/80 border border-slate-700/60 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
+                  className="bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer"
                 >
                   <option value="AUTO">Station: Auto-Detect</option>
                   {STATION_PRESETS.map((st) => (
@@ -460,7 +456,7 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
                   type="button"
                   disabled={isGenerating}
                   onClick={() => handleGenerateAiRecipe()}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 via-indigo-600 to-amber-500 text-white font-semibold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-sky-500/20 hover:opacity-95 active:scale-[0.98] transition-all disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 via-indigo-600 to-amber-500 text-white font-semibold text-xs flex items-center justify-center space-x-2 shadow-glow-sky hover:opacity-95 active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {isGenerating ? (
                     <>
@@ -469,7 +465,7 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-4 h-4 text-amber-300" />
+                      <Sparkles className="w-4 h-4 text-amber-200" />
                       <span>Extract & Build</span>
                     </>
                   )}
@@ -478,7 +474,7 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
 
               {/* Sample Prompt Chips */}
               <div className="flex items-center flex-wrap gap-1.5 pt-1">
-                <span className="text-[11px] text-slate-500 mr-1">Quick prompts:</span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 mr-1">Quick prompts:</span>
                 {SAMPLE_AI_PROMPTS.map((p) => (
                   <button
                     key={p}
@@ -487,7 +483,7 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
                       setAiPrompt(p);
                       handleGenerateAiRecipe(p);
                     }}
-                    className="px-2.5 py-1 rounded-lg bg-slate-800/60 hover:bg-slate-700/60 border border-white/5 text-slate-300 hover:text-white text-[11px] transition-colors"
+                    className="px-2.5 py-1 rounded-lg bg-neu-surface hover:bg-neu-hover border border-neu-border text-slate-700 dark:text-slate-300 text-[11px] shadow-neu-raised-sm transition-all cursor-pointer"
                   >
                     {p}
                   </button>
@@ -495,8 +491,8 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
               </div>
 
               {aiDescription && (
-                <div className="p-3 rounded-xl bg-slate-900/80 border border-white/10 text-xs text-slate-300 italic flex items-start space-x-2">
-                  <span className="text-amber-400 font-bold not-italic shrink-0">Chef Note:</span>
+                <div className="p-3 rounded-xl bg-neu-sunken border border-neu-borderSubtle text-xs text-slate-700 dark:text-slate-300 italic flex items-start space-x-2 shadow-neu-inset-sm">
+                  <span className="text-amber-600 dark:text-amber-400 font-bold not-italic shrink-0">Chef Note:</span>
                   <span>{aiDescription}</span>
                 </div>
               )}
@@ -505,9 +501,9 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
 
           {/* DISH DETAILS SECTION */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-white/10 pb-2">
-              <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
-                <UtensilsCrossed className="w-3.5 h-3.5 text-sky-400" />
+            <div className="flex items-center justify-between border-b border-neu-borderSubtle pb-2">
+              <h3 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
+                <UtensilsCrossed className="w-3.5 h-3.5 text-sky-500" />
                 <span>Dish Information</span>
               </h3>
             </div>
@@ -515,24 +511,24 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Dish Name */}
               <div className="sm:col-span-2 space-y-1.5">
-                <label className="text-xs font-medium text-slate-300">Dish / Drink Name *</label>
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Dish / Drink Name *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Chicken Masala Handi"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-slate-900/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500"
+                  className="w-full bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-sky-500"
                 />
               </div>
 
               {/* Station */}
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-300">Station *</label>
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Station *</label>
                 <select
                   value={station}
                   onChange={(e) => setStation(e.target.value)}
-                  className="w-full bg-slate-900/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-sky-500"
+                  className="w-full bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none cursor-pointer"
                 >
                   {STATION_PRESETS.map((st) => (
                     <option key={st} value={st}>
@@ -547,16 +543,16 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
                     placeholder="Enter station name"
                     value={customStation}
                     onChange={(e) => setCustomStation(e.target.value)}
-                    className="w-full mt-1.5 bg-slate-900/60 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-sky-500"
+                    className="w-full mt-1.5 bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-white focus:outline-none"
                   />
                 )}
               </div>
 
               {/* Selling Price */}
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-300">Menu Price ($) *</label>
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Menu Price ($) *</label>
                 <div className="relative">
-                  <DollarSign className="w-4 h-4 text-emerald-400 absolute left-3 top-2.5" />
+                  <DollarSign className="w-4 h-4 text-emerald-500 absolute left-3 top-2.5" />
                   <input
                     type="number"
                     step="0.25"
@@ -564,22 +560,22 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
                     required
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    className="w-full bg-slate-900/60 border border-white/10 rounded-xl pl-8 pr-3 py-2 text-sm font-semibold text-emerald-400 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl pl-8 pr-3 py-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400 placeholder-slate-400 focus:outline-none font-mono"
                   />
                 </div>
               </div>
 
               {/* Prep Time */}
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-300">Prep Time (min)</label>
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-300">Prep Time (min)</label>
                 <div className="relative">
-                  <Clock className="w-4 h-4 text-amber-400 absolute left-3 top-2.5" />
+                  <Clock className="w-4 h-4 text-amber-500 absolute left-3 top-2.5" />
                   <input
                     type="number"
                     min="1"
                     value={prepTime}
                     onChange={(e) => setPrepTime(e.target.value)}
-                    className="w-full bg-slate-900/60 border border-white/10 rounded-xl pl-8 pr-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                    className="w-full bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl pl-8 pr-3 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none font-mono"
                   />
                 </div>
               </div>
@@ -588,13 +584,13 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
 
           {/* BILL OF MATERIALS & INGREDIENTS SECTION */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-white/10 pb-2">
+            <div className="flex items-center justify-between border-b border-neu-borderSubtle pb-2">
               <div className="flex items-center space-x-2">
-                <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
-                  <Layers className="w-3.5 h-3.5 text-indigo-400" />
+                <h3 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
+                  <Layers className="w-3.5 h-3.5 text-indigo-500" />
                   <span>Recipe Bill of Materials (BOM) & Inventory Integration</span>
                 </h3>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 font-mono">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-700 dark:text-indigo-300 font-mono">
                   {ingredientRows.length} items
                 </span>
               </div>
@@ -603,17 +599,17 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
                 <button
                   type="button"
                   onClick={handleAddExistingIngredientRow}
-                  className="px-3 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-white/10 text-xs text-slate-200 flex items-center space-x-1.5 transition-colors"
+                  className="px-3 py-1.5 rounded-xl bg-neu-surface hover:bg-neu-hover border border-neu-border text-xs text-slate-700 dark:text-slate-300 shadow-neu-raised-sm hover:shadow-neu-raised flex items-center space-x-1.5 transition-all cursor-pointer"
                 >
-                  <Package className="w-3.5 h-3.5 text-emerald-400" />
+                  <Package className="w-3.5 h-3.5 text-emerald-500" />
                   <span>+ From Stock</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleAddNewCustomIngredientRow}
-                  className="px-3 py-1 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-xs text-sky-300 flex items-center space-x-1.5 transition-colors"
+                  className="px-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-xs text-sky-700 dark:text-sky-300 font-semibold flex items-center space-x-1.5 transition-all cursor-pointer"
                 >
-                  <PackagePlus className="w-3.5 h-3.5 text-sky-400" />
+                  <PackagePlus className="w-3.5 h-3.5 text-sky-500" />
                   <span>+ New Stock Item</span>
                 </button>
               </div>
@@ -624,18 +620,18 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
               {ingredientRows.map((row, idx) => (
                 <div
                   key={idx}
-                  className="p-3.5 rounded-xl bg-slate-900/60 border border-white/10 hover:border-white/20 transition-all flex flex-col lg:flex-row items-start lg:items-center gap-3"
+                  className="p-3.5 rounded-xl bg-neu-card border border-neu-borderSubtle shadow-neu-raised-sm hover:border-neu-border transition-all flex flex-col lg:flex-row items-start lg:items-center gap-3"
                 >
                   {/* Status Indicator */}
                   <div className="shrink-0 flex items-center space-x-1.5">
                     {row.is_new ? (
-                      <span className="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] font-semibold flex items-center space-x-1" title="Will be automatically inserted into the ingredients table">
-                        <PackagePlus className="w-3 h-3 text-amber-400" />
+                      <span className="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-[10px] font-semibold flex items-center space-x-1" title="Will be automatically inserted into the ingredients table">
+                        <PackagePlus className="w-3 h-3 text-amber-500" />
                         <span>New to Stock</span>
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[10px] font-semibold flex items-center space-x-1" title="Matches existing pantry item">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-[10px] font-semibold flex items-center space-x-1" title="Matches existing pantry item">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-500" />
                         <span>In Stock</span>
                       </span>
                     )}
@@ -649,34 +645,34 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
                         placeholder="Ingredient Name (e.g. Garam Masala)"
                         value={row.name}
                         onChange={(e) => handleRowChange(idx, 'name', e.target.value)}
-                        className="w-full bg-slate-950/80 border border-amber-500/30 rounded-lg px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 font-medium"
+                        className="w-full bg-neu-sunken border border-amber-500/30 shadow-neu-inset-sm rounded-lg px-3 py-1.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 font-medium"
                       />
                     ) : (
                       <select
                         value={row.ingredient_id || ''}
                         onChange={(e) => handleRowChange(idx, 'ingredient_id', e.target.value)}
-                        className="w-full bg-slate-950/80 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500"
+                        className="w-full bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-lg px-3 py-1.5 text-xs text-slate-900 dark:text-white focus:outline-none cursor-pointer"
                       >
                         {safeIngredients.map((ing) => (
-                          <option key={ing.id} value={ing.id}>
+                          <option key={ing.id} value={ing.id} className="bg-neu-surface text-slate-900 dark:text-white">
                             {ing.name} ({ing.unit || 'kg'}) — ${Number(ing.cost_per_unit || 0).toFixed(2)}/{ing.unit || 'kg'}
                           </option>
                         ))}
-                        <option value="__NEW__">+ Switch to New Ingredient...</option>
+                        <option value="__NEW__" className="bg-neu-surface text-amber-600 dark:text-amber-400">+ Switch to New Ingredient...</option>
                       </select>
                     )}
                   </div>
 
                   {/* Portion Quantity Required */}
                   <div className="flex items-center space-x-1.5 shrink-0">
-                    <span className="text-[11px] text-slate-400">Qty/Dish:</span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">Qty/Dish:</span>
                     <input
                       type="number"
                       step="0.001"
                       min="0.001"
                       value={row.quantity_required}
                       onChange={(e) => handleRowChange(idx, 'quantity_required', parseFloat(e.target.value) || 0)}
-                      className="w-20 bg-slate-950/80 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs font-mono text-center text-slate-100 focus:outline-none focus:border-sky-500"
+                      className="w-20 bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-lg px-2.5 py-1.5 text-xs font-mono text-center text-slate-900 dark:text-white focus:outline-none"
                     />
                   </div>
 
@@ -685,10 +681,10 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
                     <select
                       value={row.unit}
                       onChange={(e) => handleRowChange(idx, 'unit', e.target.value)}
-                      className="bg-slate-950/80 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
+                      className="bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-lg px-2.5 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer"
                     >
                       {COMMON_UNITS.map((u) => (
-                        <option key={u} value={u}>
+                        <option key={u} value={u} className="bg-neu-surface text-slate-900 dark:text-white">
                           {u}
                         </option>
                       ))}
@@ -697,9 +693,9 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
 
                   {/* Extra Fields for New Ingredients (Cost, Stock, Threshold) */}
                   {row.is_new && (
-                    <div className="flex items-center space-x-2 shrink-0 bg-slate-950/50 p-1.5 rounded-lg border border-white/5">
+                    <div className="flex items-center space-x-2 shrink-0 bg-neu-sunken p-1.5 rounded-lg border border-neu-borderSubtle shadow-neu-inset-sm">
                       <div className="flex items-center space-x-1" title="Unit Cost">
-                        <span className="text-[10px] text-slate-500">$</span>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400">$</span>
                         <input
                           type="number"
                           step="0.05"
@@ -707,12 +703,12 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
                           value={row.cost_per_unit}
                           onChange={(e) => handleRowChange(idx, 'cost_per_unit', parseFloat(e.target.value) || 0)}
                           placeholder="Cost"
-                          className="w-14 bg-transparent border-b border-slate-700 text-right text-xs font-mono text-slate-300 focus:outline-none focus:border-amber-400"
+                          className="w-14 bg-transparent border-b border-neu-border text-right text-xs font-mono text-slate-900 dark:text-white focus:outline-none"
                         />
                       </div>
 
                       <div className="flex items-center space-x-1" title="Initial Stock">
-                        <span className="text-[10px] text-slate-500">Init:</span>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400">Init:</span>
                         <input
                           type="number"
                           step="1"
@@ -720,12 +716,12 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
                           value={row.current_stock}
                           onChange={(e) => handleRowChange(idx, 'current_stock', parseFloat(e.target.value) || 0)}
                           placeholder="Stock"
-                          className="w-12 bg-transparent border-b border-slate-700 text-right text-xs font-mono text-slate-300 focus:outline-none focus:border-amber-400"
+                          className="w-12 bg-transparent border-b border-neu-border text-right text-xs font-mono text-slate-900 dark:text-white focus:outline-none"
                         />
                       </div>
 
                       <div className="flex items-center space-x-1" title="Safety Threshold">
-                        <span className="text-[10px] text-slate-500">Min:</span>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400">Min:</span>
                         <input
                           type="number"
                           step="1"
@@ -733,7 +729,7 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
                           value={row.minimum_threshold}
                           onChange={(e) => handleRowChange(idx, 'minimum_threshold', parseFloat(e.target.value) || 0)}
                           placeholder="Min"
-                          className="w-12 bg-transparent border-b border-slate-700 text-right text-xs font-mono text-slate-300 focus:outline-none focus:border-amber-400"
+                          className="w-12 bg-transparent border-b border-neu-border text-right text-xs font-mono text-slate-900 dark:text-white focus:outline-none"
                         />
                       </div>
                     </div>
@@ -741,7 +737,7 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
 
                   {/* Cost per portion */}
                   <div className="shrink-0 text-right w-16">
-                    <span className="text-xs font-mono text-slate-400">
+                    <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
                       ${(Number(row.quantity_required) * Number(row.cost_per_unit)).toFixed(2)}
                     </span>
                   </div>
@@ -750,7 +746,7 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleRemoveRow(idx)}
-                    className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/30 transition-colors shrink-0"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 transition-colors shrink-0 cursor-pointer"
                     title="Remove ingredient"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -761,19 +757,19 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
           </div>
 
           {/* LIVE COST & MARGIN HUD */}
-          <div className="p-4 rounded-xl bg-slate-900/90 border border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-4 items-center">
+          <div className="p-4 rounded-xl bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm grid grid-cols-2 sm:grid-cols-4 gap-4 items-center">
             <div>
-              <div className="text-[11px] text-slate-400 font-medium">Est. Cost / Portion</div>
-              <div className="text-lg font-bold font-mono text-slate-100">
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Est. Cost / Portion</div>
+              <div className="text-lg font-bold font-mono text-slate-900 dark:text-white">
                 ${calculatedCost.toFixed(2)}
               </div>
             </div>
 
             <div>
-              <div className="text-[11px] text-slate-400 font-medium">Food Cost %</div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Food Cost %</div>
               <div
                 className={`text-lg font-bold font-mono ${
-                  Number(foodCostPct) <= 32 ? 'text-emerald-400' : 'text-amber-400'
+                  Number(foodCostPct) <= 32 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
                 }`}
               >
                 {foodCostPct}%
@@ -781,31 +777,31 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
             </div>
 
             <div>
-              <div className="text-[11px] text-slate-400 font-medium">Gross Margin</div>
-              <div className="text-lg font-bold font-mono text-emerald-400">
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Gross Margin</div>
+              <div className="text-lg font-bold font-mono text-emerald-600 dark:text-emerald-400">
                 ${grossMargin.toFixed(2)}{' '}
-                <span className="text-xs font-normal text-slate-400">({grossMarginPct}%)</span>
+                <span className="text-xs font-normal text-slate-500 dark:text-slate-400">({grossMarginPct}%)</span>
               </div>
             </div>
 
             <div className="text-right">
-              <div className="text-[11px] text-slate-400 font-medium">Inventory Sync</div>
-              <div className="text-xs font-semibold text-sky-400">
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Inventory Sync</div>
+              <div className="text-xs font-semibold">
                 {newIngredientsCount > 0 ? (
-                  <span className="text-amber-400">+{newIngredientsCount} New to Stock</span>
+                  <span className="text-amber-600 dark:text-amber-400">+{newIngredientsCount} New to Stock</span>
                 ) : (
-                  <span className="text-emerald-400">All in Stock</span>
+                  <span className="text-emerald-600 dark:text-emerald-400">All in Stock</span>
                 )}
               </div>
             </div>
           </div>
 
           {/* Modal Footer Actions */}
-          <div className="flex items-center justify-between pt-3 border-t border-white/10">
+          <div className="flex items-center justify-between pt-3 border-t border-neu-borderSubtle">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+              className="px-4 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -813,7 +809,7 @@ export const NewRecipeModal: React.FC<NewRecipeModalProps> = ({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 via-indigo-600 to-emerald-500 text-white font-semibold text-xs flex items-center space-x-2 shadow-lg shadow-sky-500/25 hover:opacity-95 active:scale-[0.98] transition-all disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 via-indigo-600 to-emerald-500 text-white font-semibold text-xs flex items-center space-x-2 shadow-glow-sky hover:opacity-95 active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? (
                 <>

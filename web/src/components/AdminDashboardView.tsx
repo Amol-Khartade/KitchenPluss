@@ -195,7 +195,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
   return (
     <div className="space-y-6 animate-in fade-in duration-300 pb-16">
       {/* ── TOP HERO BANNER: Executive Command & Tenant Badge ── */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-slate-900/90 to-amber-950/40 border border-white/10 p-5 sm:p-7 shadow-glass">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-amber-500/10 via-neu-surface to-sky-500/10 border border-neu-border p-5 sm:p-7 shadow-neu-raised text-slate-800 dark:text-slate-100">
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/3 -mb-16 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -257,14 +257,14 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
       </div>
 
       {/* ── DASHBOARD SUB-NAVIGATION TABS ── */}
-      <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-900/80 border border-white/10 backdrop-blur-xl overflow-x-auto custom-scrollbar">
+      <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm overflow-x-auto custom-scrollbar">
         <button
           type="button"
           onClick={() => setActiveSection('overview')}
           className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 whitespace-nowrap active:scale-95 ${
             activeSection === 'overview'
               ? 'bg-gradient-to-r from-sky-500 to-sky-600 text-white shadow-glow-sky border border-sky-400/50'
-              : 'text-slate-400 hover:text-white hover:bg-white/5'
+              : 'bg-neu-surface text-slate-700 dark:text-slate-300 border border-neu-border shadow-neu-raised-sm hover:shadow-neu-raised'
           }`}
         >
           <LayoutDashboard className="w-4 h-4" />
@@ -277,7 +277,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
           className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 whitespace-nowrap active:scale-95 ${
             activeSection === 'automation'
               ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-glow-purple border border-purple-400/50'
-              : 'text-slate-400 hover:text-white hover:bg-white/5'
+              : 'bg-neu-surface text-slate-700 dark:text-slate-300 border border-neu-border shadow-neu-raised-sm hover:shadow-neu-raised'
           }`}
         >
           <Sliders className="w-4 h-4" />
@@ -290,7 +290,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
           className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 whitespace-nowrap active:scale-95 ${
             activeSection === 'organization'
               ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-glow-amber border border-amber-400/50'
-              : 'text-slate-400 hover:text-white hover:bg-white/5'
+              : 'bg-neu-surface text-slate-700 dark:text-slate-300 border border-neu-border shadow-neu-raised-sm hover:shadow-neu-raised'
           }`}
         >
           <Building2 className="w-4 h-4" />
@@ -303,7 +303,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
           className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 whitespace-nowrap active:scale-95 ${
             activeSection === 'security'
               ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-glow-emerald border border-emerald-400/50'
-              : 'text-slate-400 hover:text-white hover:bg-white/5'
+              : 'bg-neu-surface text-slate-700 dark:text-slate-300 border border-neu-border shadow-neu-raised-sm hover:shadow-neu-raised'
           }`}
         >
           <ShieldCheck className="w-4 h-4" />
@@ -459,7 +459,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Rule 1: Automated Supplier Purchase Orders */}
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-white/10 flex flex-col justify-between">
+            <div className="p-4 rounded-2xl bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -485,7 +485,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
             </div>
 
             {/* Rule 2: Expedited Wholesale Vendor Delivery */}
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-white/10 flex flex-col justify-between">
+            <div className="p-4 rounded-2xl bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -513,7 +513,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
             </div>
 
             {/* Rule 3: Gemini 3.8 Flash Prep Buffer */}
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-white/10 flex flex-col justify-between">
+            <div className="p-4 rounded-2xl bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -548,7 +548,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
             </div>
 
             {/* Rule 4: Ticket Completion BOM Stock Deduction */}
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-white/10 flex flex-col justify-between">
+            <div className="p-4 rounded-2xl bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -576,7 +576,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
             </div>
 
             {/* Rule 5: Shift Scrap Variance Alert */}
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-white/10 flex flex-col justify-between">
+            <div className="p-4 rounded-2xl bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -611,7 +611,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
             </div>
 
             {/* Rule 6: Nightly AI Batch Audit */}
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-white/10 flex flex-col justify-between">
+            <div className="p-4 rounded-2xl bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -672,7 +672,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
                 disabled={!isOwner}
                 value={organization?.name || ''}
                 readOnly
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-white/10 text-white text-xs font-medium focus:outline-none focus:border-sky-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm text-slate-900 dark:text-white text-xs font-medium focus:outline-none focus:border-sky-500"
               />
               <p className="text-[10px] text-slate-500 mt-1">
                 {isOwner ? 'Tenant ID: ' + (organization?.id || '') : 'Owner authority required to change client name'}
@@ -699,7 +699,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
               <select
                 value={settings.currency}
                 onChange={(e) => saveSettings({ ...settings, currency: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-white/10 text-white text-xs font-medium focus:outline-none focus:border-sky-500 cursor-pointer"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm text-slate-900 dark:text-white text-xs font-medium focus:outline-none focus:border-sky-500 cursor-pointer"
               >
                 <option value="USD ($)">USD ($) - US Dollar</option>
                 <option value="EUR (€)">EUR (€) - Euro</option>
@@ -716,7 +716,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
               <select
                 value={settings.timezone}
                 onChange={(e) => saveSettings({ ...settings, timezone: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-white/10 text-white text-xs font-medium focus:outline-none focus:border-sky-500 cursor-pointer"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm text-slate-900 dark:text-white text-xs font-medium focus:outline-none focus:border-sky-500 cursor-pointer"
               >
                 <option value="America/New_York (EST)">America/New_York (EST)</option>
                 <option value="Europe/London (GMT)">Europe/London (GMT)</option>
@@ -734,7 +734,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
                 type="text"
                 value={settings.hotelContactPhone}
                 onChange={(e) => setSettings({ ...settings, hotelContactPhone: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-white/10 text-white text-xs font-medium focus:outline-none focus:border-sky-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm text-slate-900 dark:text-white text-xs font-medium focus:outline-none focus:border-sky-500"
               />
             </div>
 
@@ -746,7 +746,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
                 type="text"
                 value={settings.hotelAddress}
                 onChange={(e) => setSettings({ ...settings, hotelAddress: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-white/10 text-white text-xs font-medium focus:outline-none focus:border-sky-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm text-slate-900 dark:text-white text-xs font-medium focus:outline-none focus:border-sky-500"
               />
             </div>
           </div>
@@ -781,7 +781,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
 
             <div className="overflow-x-auto rounded-2xl border border-white/10">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-900/90 text-slate-400 font-mono text-[10px] uppercase border-b border-white/10">
+                <thead className="bg-neu-card text-slate-500 dark:text-slate-400 font-mono text-[10px] uppercase border-b border-neu-borderSubtle">
                   <tr>
                     <th className="py-3 px-4">Role Tier</th>
                     <th className="py-3 px-4">Financial & Unit Costs</th>

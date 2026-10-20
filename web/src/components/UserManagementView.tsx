@@ -108,36 +108,36 @@ export const UserManagementView: React.FC = () => {
   const getRoleBadgeStyle = (userRole: string) => {
     switch (userRole) {
       case 'Owner':
-        return 'bg-amber-500/20 text-amber-300 border-amber-500/40 ring-1 ring-amber-500/30';
+        return 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/40 ring-1 ring-amber-500/30';
       case 'Admin':
-        return 'bg-sky-500/20 text-sky-300 border-sky-500/40';
+        return 'bg-sky-500/15 text-sky-800 dark:text-sky-300 border-sky-500/40';
       case 'Executive Chef':
-        return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+        return 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/40';
       case 'Sous Chef':
-        return 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40';
+        return 'bg-indigo-500/15 text-indigo-800 dark:text-indigo-300 border-indigo-500/40';
       default:
-        return 'bg-slate-700/50 text-slate-300 border-slate-600/50';
+        return 'bg-neu-sunken text-slate-700 dark:text-slate-300 border-neu-borderSubtle';
     }
   };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* View Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-6 rounded-2xl border border-white/10 shadow-glass">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-neu-surface p-6 rounded-2xl border border-neu-border shadow-neu-raised">
         <div className="flex items-start space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-amber-500 p-0.5 flex items-center justify-center shadow-lg shadow-sky-950/50 flex-shrink-0">
-            <div className="w-full h-full bg-slate-900/90 rounded-[10px] flex items-center justify-center">
-              <Users className="w-6 h-6 text-sky-400" />
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-amber-500 p-0.5 flex items-center justify-center shadow-sm flex-shrink-0">
+            <div className="w-full h-full bg-neu-surface rounded-[10px] flex items-center justify-center">
+              <Users className="w-6 h-6 text-sky-500" />
             </div>
           </div>
           <div>
             <div className="flex items-center space-x-2.5">
-              <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">Team & User Management</h2>
-              <span className="text-[10px] uppercase font-mono px-2.5 py-0.5 rounded-full bg-sky-950/70 text-sky-300 border border-sky-500/40 shadow-sm">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Team & User Management</h2>
+              <span className="text-[10px] uppercase font-mono px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/40 shadow-sm">
                 {organization?.name || 'Client Ops'}
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Admin & Owner control console for kitchen staff, privileges, and operational assignments.
             </p>
           </div>
@@ -149,7 +149,7 @@ export const UserManagementView: React.FC = () => {
             setIsAddUserOpen(!isAddUserOpen);
             setErrorMessage(null);
           }}
-          className="flex items-center justify-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-sky-500 via-indigo-500 to-sky-600 hover:from-sky-400 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-glow-sky border border-sky-400/30 transition-all duration-200 active:scale-95 self-start sm:self-auto"
+          className="flex items-center justify-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-sky-500 via-indigo-500 to-sky-600 hover:from-sky-400 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-glow-sky border border-sky-400/30 transition-all duration-200 active:scale-95 self-start sm:self-auto cursor-pointer"
         >
           <UserPlus className="w-4 h-4" />
           <span>{isAddUserOpen ? 'Cancel' : 'Add Team Member'}</span>
@@ -158,80 +158,80 @@ export const UserManagementView: React.FC = () => {
 
       {/* Notifications */}
       {successMessage && (
-        <div className="flex items-center space-x-2 p-3.5 bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 rounded-xl text-xs animate-in fade-in shadow-sm">
-          <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+        <div className="flex items-center space-x-2 p-3.5 bg-emerald-500/15 border border-emerald-500/40 text-emerald-800 dark:text-emerald-300 rounded-xl text-xs animate-in fade-in shadow-sm">
+          <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-500" />
           <span>{successMessage}</span>
         </div>
       )}
 
       {errorMessage && (
-        <div className="flex items-center space-x-2 p-3 bg-rose-950/60 border border-rose-800 text-rose-300 rounded-xl text-xs animate-in fade-in">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+        <div className="flex items-center space-x-2 p-3 bg-rose-500/15 border border-rose-500/40 text-rose-800 dark:text-rose-300 rounded-xl text-xs animate-in fade-in">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-500" />
           <span>{errorMessage}</span>
         </div>
       )}
 
       {/* Add User Expandable Drawer/Form */}
       {isAddUserOpen && (
-        <div className="glass-panel border border-sky-500/40 rounded-2xl p-6 shadow-2xl animate-in slide-in-from-top-4 duration-200">
-          <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
+        <div className="bg-neu-surface border border-sky-500/40 rounded-2xl p-6 shadow-neu-raised-lg animate-in slide-in-from-top-4 duration-200">
+          <div className="flex items-center justify-between mb-4 pb-3 border-b border-neu-borderSubtle">
             <div className="flex items-center space-x-2">
-              <Sparkles className="w-4 h-4 text-sky-400" />
-              <h3 className="text-sm font-bold text-white">Add New Team Member to {organization?.name}</h3>
+              <Sparkles className="w-4 h-4 text-sky-500" />
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Add New Team Member to {organization?.name}</h3>
             </div>
-            <span className="text-[10px] text-slate-400 font-mono">Org Code: {organization?.code}</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Org Code: {organization?.code}</span>
           </div>
 
           <form onSubmit={handleAddUser} className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                 Full Name
               </label>
               <div className="relative">
-                <UserIcon className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <UserIcon className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Gordon Ramsay"
-                  className="w-full glass-input rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none"
+                  className="w-full bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="gordon@kitchenpulse.io"
-                  className="w-full glass-input rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none"
+                  className="w-full bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                 Kitchen Role
               </label>
               <div className="relative">
-                <ChefHat className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <ChefHat className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
-                  className="w-full glass-input rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none cursor-pointer"
+                  className="w-full bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none cursor-pointer"
                 >
                   {AVAILABLE_ROLES.map((r) => {
                     if (r === 'Owner' && !isOwner) return null;
                     return (
-                      <option key={r} value={r} className="bg-slate-900 text-white">
+                      <option key={r} value={r} className="bg-neu-surface text-slate-900 dark:text-white">
                         {r}
                       </option>
                     );
@@ -241,17 +241,17 @@ export const UserManagementView: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                 Temporary Password
               </label>
               <div className="relative">
-                <Key className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Key className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="password123"
-                  className="w-full glass-input rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none font-mono"
+                  className="w-full bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none font-mono"
                 />
               </div>
             </div>
@@ -260,14 +260,14 @@ export const UserManagementView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsAddUserOpen(false)}
-                className="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold rounded-xl border border-white/10 transition-colors"
+                className="px-4 py-2 bg-neu-surface hover:bg-neu-hover text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl border border-neu-border shadow-neu-raised-sm hover:shadow-neu-raised transition-all cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={createUserMutation.isPending}
-                className="flex items-center space-x-2 px-5 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-glow-sky border border-sky-400/30 transition-all active:scale-95 disabled:opacity-50"
+                className="flex items-center space-x-2 px-5 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-glow-sky border border-sky-400/30 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
               >
                 {createUserMutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 <span>Create User</span>
@@ -278,26 +278,26 @@ export const UserManagementView: React.FC = () => {
       )}
 
       {/* Users Table */}
-      <div className="glass-panel border border-white/10 rounded-2xl overflow-hidden shadow-glass">
-        <div className="p-4 sm:px-6 border-b border-white/10 flex items-center justify-between bg-slate-900/40">
+      <div className="bg-neu-surface border border-neu-border rounded-2xl overflow-hidden shadow-neu-raised">
+        <div className="p-4 sm:px-6 border-b border-neu-borderSubtle flex items-center justify-between bg-neu-card/50">
           <div className="flex items-center space-x-2">
-            <Shield className="w-4 h-4 text-sky-400" />
-            <span className="text-xs font-bold text-white uppercase tracking-wider">
+            <Shield className="w-4 h-4 text-sky-500" />
+            <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               Active Organization Members ({users.length})
             </span>
           </div>
-          <span className="text-[11px] text-slate-400 font-mono">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
             Isolated tenant: {organization?.slug}
           </span>
         </div>
 
         {isLoading ? (
           <div className="p-12 flex flex-col items-center justify-center space-y-3">
-            <Loader2 className="w-8 h-8 animate-spin text-sky-400" />
+            <Loader2 className="w-8 h-8 animate-spin text-sky-500" />
             <span className="text-xs text-slate-400 font-mono">Loading team members...</span>
           </div>
         ) : error ? (
-          <div className="p-8 text-center text-rose-400 text-xs">
+          <div className="p-8 text-center text-rose-600 dark:text-rose-400 text-xs">
             Failed to load users: {(error as Error).message}
           </div>
         ) : users.length === 0 ? (
@@ -309,7 +309,7 @@ export const UserManagementView: React.FC = () => {
             {/* Desktop / Tablet Table */}
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950/60 text-slate-400 uppercase text-[10px] tracking-wider font-semibold border-b border-white/10">
+                <thead className="bg-neu-card text-slate-500 dark:text-slate-400 uppercase text-[10px] tracking-wider font-semibold border-b border-neu-borderSubtle">
                   <tr>
                     <th className="py-3 px-4">Member</th>
                     <th className="py-3 px-4">Role</th>
@@ -318,14 +318,14 @@ export const UserManagementView: React.FC = () => {
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-neu-borderSubtle">
                   {users.map((u: User) => {
                     const isCurrent = u.id === currentUser?.id;
                     const isUserOwner = u.role === 'Owner';
                     const isUserAdmin = u.role === 'Admin';
 
                     return (
-                      <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
+                      <tr key={u.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
                         {/* Member Info */}
                         <td className="py-3.5 px-4">
                           <div className="flex items-center space-x-3">
@@ -336,21 +336,21 @@ export const UserManagementView: React.FC = () => {
                                 className="w-8 h-8 rounded-lg object-cover ring-1 ring-sky-500/40"
                               />
                             ) : (
-                              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shadow-sm">
+                              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shadow-sm">
                                 {u.name.charAt(0).toUpperCase()}
                               </div>
                             )}
                             <div>
                               <div className="flex items-center space-x-1.5">
-                                <span className="font-semibold text-white">{u.name}</span>
+                                <span className="font-semibold text-slate-900 dark:text-white">{u.name}</span>
                                 {isCurrent && (
-                                  <span className="text-[9px] px-1.5 py-0.2 bg-sky-950 text-sky-400 border border-sky-800 rounded">
+                                  <span className="text-[9px] px-1.5 py-0.2 bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/40 rounded font-bold">
                                     You
                                   </span>
                                 )}
-                                {isUserOwner && <Crown className="w-3.5 h-3.5 text-amber-400" />}
+                                {isUserOwner && <Crown className="w-3.5 h-3.5 text-amber-500" />}
                               </div>
-                              <span className="text-[11px] text-slate-400 font-mono">{u.email}</span>
+                              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">{u.email}</span>
                             </div>
                           </div>
                         </td>
@@ -368,7 +368,7 @@ export const UserManagementView: React.FC = () => {
 
                         {/* Auth Type */}
                         <td className="py-3.5 px-4">
-                          <span className="text-[11px] text-slate-300 font-mono capitalize">
+                          <span className="text-[11px] text-slate-600 dark:text-slate-300 font-mono capitalize">
                             {u.auth_provider === 'google' ? 'Google Auth' : 'Email & Password'}
                           </span>
                         </td>
@@ -379,10 +379,10 @@ export const UserManagementView: React.FC = () => {
                             <select
                               value={u.role}
                               onChange={(e) => updateRoleMutation.mutate({ id: u.id, role: e.target.value })}
-                              className="glass-input text-slate-200 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none cursor-pointer"
+                              className="bg-neu-sunken border border-neu-borderSubtle text-slate-800 dark:text-slate-200 text-xs rounded-xl px-2.5 py-1.5 shadow-neu-inset-sm focus:outline-none cursor-pointer"
                             >
                               {AVAILABLE_ROLES.map((r) => (
-                                <option key={r} value={r} className="bg-slate-900 text-white">
+                                <option key={r} value={r} className="bg-neu-surface text-slate-900 dark:text-white">
                                   {r}
                                 </option>
                               ))}
@@ -393,10 +393,10 @@ export const UserManagementView: React.FC = () => {
                             <select
                               value={u.role}
                               onChange={(e) => updateRoleMutation.mutate({ id: u.id, role: e.target.value })}
-                              className="glass-input text-slate-200 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none cursor-pointer"
+                              className="bg-neu-sunken border border-neu-borderSubtle text-slate-800 dark:text-slate-200 text-xs rounded-xl px-2.5 py-1.5 shadow-neu-inset-sm focus:outline-none cursor-pointer"
                             >
                               {AVAILABLE_ROLES.filter((r) => r !== 'Owner' && r !== 'Admin').map((r) => (
-                                <option key={r} value={r} className="bg-slate-900 text-white">
+                                <option key={r} value={r} className="bg-neu-surface text-slate-900 dark:text-white">
                                   {r}
                                 </option>
                               ))}
@@ -416,7 +416,7 @@ export const UserManagementView: React.FC = () => {
                                   deleteUserMutation.mutate(u.id);
                                 }
                               }}
-                              className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition-colors"
+                              className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
                               title="Remove User"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -438,22 +438,22 @@ export const UserManagementView: React.FC = () => {
                 const isUserAdmin = u.role === 'Admin';
 
                 return (
-                  <div key={u.id} className="p-4 rounded-xl glass-card space-y-3">
+                  <div key={u.id} className="p-4 rounded-xl bg-neu-card border border-neu-border shadow-neu-raised-sm space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2.5">
-                        <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs">
+                        <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shadow-sm">
                           {u.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
                           <div className="flex items-center space-x-1.5">
-                            <span className="font-bold text-white text-sm">{u.name}</span>
+                            <span className="font-bold text-slate-900 dark:text-white text-sm">{u.name}</span>
                             {isCurrent && (
-                              <span className="text-[9px] px-1.5 py-0.2 bg-sky-950 text-sky-400 border border-sky-800 rounded">
+                              <span className="text-[9px] px-1.5 py-0.2 bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/40 rounded font-bold">
                                 You
                               </span>
                             )}
                           </div>
-                          <span className="text-xs text-slate-400 font-mono">{u.email}</span>
+                          <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">{u.email}</span>
                         </div>
                       </div>
 
@@ -466,8 +466,8 @@ export const UserManagementView: React.FC = () => {
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                      <div className="text-[11px] text-slate-400">
+                    <div className="flex items-center justify-between pt-2 border-t border-neu-borderSubtle">
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400">
                         {u.auth_provider === 'google' ? 'Google' : 'Email/Pass'}
                       </div>
 
@@ -476,10 +476,10 @@ export const UserManagementView: React.FC = () => {
                           <select
                             value={u.role}
                             onChange={(e) => updateRoleMutation.mutate({ id: u.id, role: e.target.value })}
-                            className="glass-input text-xs rounded-lg px-2 py-1"
+                            className="bg-neu-sunken border border-neu-borderSubtle text-xs rounded-lg px-2 py-1 shadow-neu-inset-sm text-slate-800 dark:text-slate-200"
                           >
                             {AVAILABLE_ROLES.map((r) => (
-                              <option key={r} value={r} className="bg-slate-900 text-white">
+                              <option key={r} value={r} className="bg-neu-surface text-slate-900 dark:text-white">
                                 {r}
                               </option>
                             ))}
@@ -494,7 +494,7 @@ export const UserManagementView: React.FC = () => {
                                 deleteUserMutation.mutate(u.id);
                               }
                             }}
-                            className="p-2 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-950/40"
+                            className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-500/10 cursor-pointer"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>

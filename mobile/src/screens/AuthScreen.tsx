@@ -1,6 +1,6 @@
 // ============================================================
 // KitchenPulse Mobile — Authentication Screen
-// Strict Auth Guard & Tenant Organization Selector
+// Strict Auth Guard, Tenant Organization Selector & Neumorphic UI
 // ============================================================
 
 import React, { useState, useEffect } from "react";
@@ -16,11 +16,14 @@ import {
   Platform,
 } from "react-native";
 import { useAuthStore } from "../store/useAuthStore";
+import { useTheme } from "../store/useThemeStore";
+import { ThemeToggle } from "../components/ui/ThemeToggle";
 import { api } from "../api/client";
 import { Organization } from "../types";
 
 export default function AuthScreen() {
   const { login, register, isLoading } = useAuthStore();
+  const { colors, isDark } = useTheme();
 
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [signupType, setSignupType] = useState<"new_org" | "join_org">("new_org");
@@ -94,29 +97,63 @@ export default function AuthScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.keyboardView}
+      style={[styles.keyboardView, { backgroundColor: colors.base }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Top Bar with Floating Theme Switcher */}
+        <View style={styles.topBar}>
+          <View style={styles.statusPill}>
+            <View style={[styles.liveDot, { backgroundColor: colors.accentEmerald }]} />
+            <Text style={[styles.statusText, { color: colors.textMuted }]}>Station Terminal Ready</Text>
+          </View>
+          <ThemeToggle />
+        </View>
+
         {/* Header Branding */}
         <View style={styles.brandContainer}>
-          <View style={styles.logoBadge}>
+          <View
+            style={[
+              styles.logoBadge,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.accentSky,
+              },
+              colors.shadowRaised,
+            ]}
+          >
             <Text style={styles.logoIcon}>🔥</Text>
           </View>
-          <Text style={styles.brandTitle}>
-            Kitchen<Text style={styles.brandAccent}>Pulse</Text>
+          <Text style={[styles.brandTitle, { color: colors.textPrimary }]}>
+            Kitchen<Text style={{ color: colors.accentSky }}>Pulse</Text>
           </Text>
-          <Text style={styles.brandSubtitle}>
+          <Text style={[styles.brandSubtitle, { color: colors.textMuted }]}>
             Commercial Kitchen Station & Supply Chain System
           </Text>
         </View>
 
-        {/* Card */}
-        <View style={styles.card}>
-          {/* Mode Tabs */}
-          <View style={styles.tabContainer}>
+        {/* Neumorphic Auth Card */}
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+            },
+            colors.shadowRaisedLg,
+          ]}
+        >
+          {/* Mode Switcher */}
+          <View style={[styles.tabContainer, { backgroundColor: colors.sunken, borderColor: colors.borderSubtle }]}>
             <TouchableOpacity
-              style={[styles.tabButton, mode === "login" && styles.activeTabButton]}
+              style={[
+                styles.tabButton,
+                mode === "login" && [
+                  styles.activeTabButton,
+                  { backgroundColor: colors.accentSky },
+                  colors.shadowRaisedSm,
+                ],
+              ]}
               onPress={() => {
                 setMode("login");
                 setErrorMessage(null);
@@ -125,7 +162,7 @@ export default function AuthScreen() {
               <Text
                 style={[
                   styles.tabButtonText,
-                  mode === "login" && styles.activeTabButtonText,
+                  { color: mode === "login" ? "#FFFFFF" : colors.textMuted },
                 ]}
               >
                 Sign In
@@ -133,7 +170,14 @@ export default function AuthScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.tabButton, mode === "signup" && styles.activeTabButton]}
+              style={[
+                styles.tabButton,
+                mode === "signup" && [
+                  styles.activeTabButton,
+                  { backgroundColor: colors.accentSky },
+                  colors.shadowRaisedSm,
+                ],
+              ]}
               onPress={() => {
                 setMode("signup");
                 setErrorMessage(null);
@@ -142,7 +186,7 @@ export default function AuthScreen() {
               <Text
                 style={[
                   styles.tabButtonText,
-                  mode === "signup" && styles.activeTabButtonText,
+                  { color: mode === "signup" ? "#FFFFFF" : colors.textMuted },
                 ]}
               >
                 Register
@@ -150,10 +194,10 @@ export default function AuthScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Error Message */}
+          {/* Error Alert */}
           {errorMessage && (
-            <View style={styles.errorBox}>
-              <Text style={styles.errorText}>⚠️ {errorMessage}</Text>
+            <View style={[styles.errorBox, { backgroundColor: colors.accentRoseBg, borderColor: colors.accentRose }]}>
+              <Text style={[styles.errorText, { color: colors.accentRose }]}>⚠️ {errorMessage}</Text>
             </View>
           )}
 
@@ -165,56 +209,92 @@ export default function AuthScreen() {
                 <TouchableOpacity
                   style={[
                     styles.typeBtn,
-                    signupType === "new_org" && styles.typeBtnActiveOwner,
+                    { backgroundColor: colors.sunken, borderColor: colors.borderSubtle },
+                    signupType === "new_org" && {
+                      borderColor: colors.accentAmber,
+                      backgroundColor: colors.accentAmberBg,
+                    },
                   ]}
                   onPress={() => setSignupType("new_org")}
                 >
-                  <Text style={styles.typeBtnText}>👑 New Hotel (Owner)</Text>
+                  <Text
+                    style={[
+                      styles.typeBtnText,
+                      { color: signupType === "new_org" ? colors.accentAmber : colors.textSecondary },
+                    ]}
+                  >
+                    👑 New Hotel (Owner)
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={[
                     styles.typeBtn,
-                    signupType === "join_org" && styles.typeBtnActiveAdmin,
+                    { backgroundColor: colors.sunken, borderColor: colors.borderSubtle },
+                    signupType === "join_org" && {
+                      borderColor: colors.accentSky,
+                      backgroundColor: colors.accentSkyBg,
+                    },
                   ]}
                   onPress={() => setSignupType("join_org")}
                 >
-                  <Text style={styles.typeBtnText}>🛡️ Join (Admin/Staff)</Text>
+                  <Text
+                    style={[
+                      styles.typeBtnText,
+                      { color: signupType === "join_org" ? colors.accentSky : colors.textSecondary },
+                    ]}
+                  >
+                    🛡️ Join Org (Staff)
+                  </Text>
                 </TouchableOpacity>
               </View>
 
               {signupType === "new_org" ? (
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Hotel / Restaurant Name</Text>
+                  <Text style={[styles.label, { color: colors.textSecondary }]}>Hotel / Restaurant Name</Text>
                   <TextInput
-                    style={[styles.input, styles.inputHighlight]}
+                    style={[
+                      styles.input,
+                      {
+                        backgroundColor: colors.sunken,
+                        borderColor: colors.accentAmber,
+                        color: colors.textPrimary,
+                      },
+                    ]}
                     placeholder="e.g. Grand Palace Hotel"
-                    placeholderTextColor="#64748b"
+                    placeholderTextColor={colors.textMuted}
                     value={orgName}
                     onChangeText={setOrgName}
                   />
-                  <Text style={styles.helperText}>
-                    You will be assigned the <Text style={{ color: "#f59e0b", fontWeight: "bold" }}>Owner</Text> role with full administrative access.
+                  <Text style={[styles.helperText, { color: colors.textMuted }]}>
+                    You will be assigned the <Text style={{ color: colors.accentAmber, fontWeight: "bold" }}>Owner</Text> role with full administrative access.
                   </Text>
                 </View>
               ) : (
                 <>
                   <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Select Client Organization</Text>
+                    <Text style={[styles.label, { color: colors.textSecondary }]}>Select Client Organization</Text>
                     <View style={styles.orgPickerList}>
                       {organizations.map((o) => (
                         <TouchableOpacity
                           key={o.id}
                           style={[
                             styles.orgOption,
-                            selectedOrgId === o.id && styles.orgOptionSelected,
+                            { backgroundColor: colors.sunken, borderColor: colors.borderSubtle },
+                            selectedOrgId === o.id && {
+                              borderColor: colors.accentSky,
+                              backgroundColor: colors.accentSkyBg,
+                            },
                           ]}
                           onPress={() => setSelectedOrgId(o.id)}
                         >
                           <Text
                             style={[
                               styles.orgOptionText,
-                              selectedOrgId === o.id && styles.orgOptionTextSelected,
+                              {
+                                color: selectedOrgId === o.id ? colors.accentSky : colors.textSecondary,
+                                fontWeight: selectedOrgId === o.id ? "800" : "600",
+                              },
                             ]}
                           >
                             🏨 {o.name}
@@ -225,21 +305,28 @@ export default function AuthScreen() {
                   </View>
 
                   <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Role</Text>
+                    <Text style={[styles.label, { color: colors.textSecondary }]}>Role</Text>
                     <View style={styles.rolePickerList}>
                       {["Admin", "Executive Chef", "Line Cook"].map((r) => (
                         <TouchableOpacity
                           key={r}
                           style={[
                             styles.roleOption,
-                            role === r && styles.roleOptionSelected,
+                            { backgroundColor: colors.sunken, borderColor: colors.borderSubtle },
+                            role === r && {
+                              borderColor: colors.accentSky,
+                              backgroundColor: colors.accentSkyBg,
+                            },
                           ]}
                           onPress={() => setRole(r)}
                         >
                           <Text
                             style={[
                               styles.roleOptionText,
-                              role === r && styles.roleOptionTextSelected,
+                              {
+                                color: role === r ? colors.accentSky : colors.textSecondary,
+                                fontWeight: role === r ? "800" : "600",
+                              },
                             ]}
                           >
                             {r}
@@ -252,11 +339,18 @@ export default function AuthScreen() {
               )}
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Full Name</Text>
+                <Text style={[styles.label, { color: colors.textSecondary }]}>Full Name</Text>
                 <TextInput
-                  style={styles.input}
-                  placeholder="e.g. Marco Pierre White"
-                  placeholderTextColor="#64748b"
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: colors.sunken,
+                      borderColor: colors.borderSubtle,
+                      color: colors.textPrimary,
+                    },
+                  ]}
+                  placeholder="e.g. Gordon Ramsay"
+                  placeholderTextColor={colors.textMuted}
                   value={name}
                   onChangeText={setName}
                 />
@@ -266,11 +360,18 @@ export default function AuthScreen() {
 
           {/* Email */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email Address</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Email Address</Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.sunken,
+                  borderColor: colors.borderSubtle,
+                  color: colors.textPrimary,
+                },
+              ]}
               placeholder="chef@kitchenpulse.io"
-              placeholderTextColor="#64748b"
+              placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
               keyboardType="email-address"
               value={email}
@@ -280,11 +381,18 @@ export default function AuthScreen() {
 
           {/* Password */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Password</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Password</Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.sunken,
+                  borderColor: colors.borderSubtle,
+                  color: colors.textPrimary,
+                },
+              ]}
               placeholder="••••••••••••"
-              placeholderTextColor="#64748b"
+              placeholderTextColor={colors.textMuted}
               secureTextEntry
               value={password}
               onChangeText={setPassword}
@@ -293,7 +401,14 @@ export default function AuthScreen() {
 
           {/* Submit Button */}
           <TouchableOpacity
-            style={styles.submitButton}
+            style={[
+              styles.submitButton,
+              {
+                backgroundColor: colors.accentSky,
+                borderColor: "rgba(255, 255, 255, 0.25)",
+              },
+              colors.shadowRaised,
+            ]}
             onPress={handleAuth}
             disabled={isLoading}
           >
@@ -301,46 +416,67 @@ export default function AuthScreen() {
               <ActivityIndicator color="#ffffff" />
             ) : (
               <Text style={styles.submitButtonText}>
-                {mode === "login" ? "Sign In to Station" : "Create Account"}
+                {mode === "login" ? "Sign In to Terminal" : "Create Account"}
               </Text>
             )}
           </TouchableOpacity>
         </View>
 
         {/* Quick Demo Logins Section */}
-        <View style={styles.demoSection}>
-          <Text style={styles.demoTitle}>⚡ 1-TAP DEMO CLIENT LOGINS</Text>
+        <View
+          style={[
+            styles.demoSection,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+            colors.shadowRaised,
+          ]}
+        >
+          <Text style={[styles.demoTitle, { color: colors.textMuted }]}>⚡ 1-TAP DEMO CLIENT LOGINS</Text>
           <View style={styles.demoGrid}>
             <TouchableOpacity
-              style={styles.demoBtn}
+              style={[
+                styles.demoBtn,
+                { backgroundColor: colors.sunken, borderColor: colors.borderSubtle },
+              ]}
               onPress={() => handleQuickDemo("owner@grandpalace.com")}
             >
-              <Text style={styles.demoBtnText}>👑 Grand Palace (Owner)</Text>
-              <Text style={styles.demoEmail}>owner@grandpalace.com</Text>
+              <Text style={[styles.demoBtnText, { color: colors.textPrimary }]}>👑 Grand Palace (Owner)</Text>
+              <Text style={[styles.demoEmail, { color: colors.textMuted }]}>owner@grandpalace.com</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.demoBtn}
+              style={[
+                styles.demoBtn,
+                { backgroundColor: colors.sunken, borderColor: colors.borderSubtle },
+              ]}
               onPress={() => handleQuickDemo("admin@grandpalace.com")}
             >
-              <Text style={styles.demoBtnText}>🛡️ Grand Palace (Admin)</Text>
-              <Text style={styles.demoEmail}>admin@grandpalace.com</Text>
+              <Text style={[styles.demoBtnText, { color: colors.textPrimary }]}>🛡️ Grand Palace (Admin)</Text>
+              <Text style={[styles.demoEmail, { color: colors.textMuted }]}>admin@grandpalace.com</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.demoBtn}
+              style={[
+                styles.demoBtn,
+                { backgroundColor: colors.sunken, borderColor: colors.borderSubtle },
+              ]}
               onPress={() => handleQuickDemo("owner@bellanapoli.com")}
             >
-              <Text style={styles.demoBtnText}>👑 Bella Napoli (Owner)</Text>
-              <Text style={styles.demoEmail}>owner@bellanapoli.com</Text>
+              <Text style={[styles.demoBtnText, { color: colors.textPrimary }]}>👑 Bella Napoli (Owner)</Text>
+              <Text style={[styles.demoEmail, { color: colors.textMuted }]}>owner@bellanapoli.com</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.demoBtn}
+              style={[
+                styles.demoBtn,
+                { backgroundColor: colors.sunken, borderColor: colors.borderSubtle },
+              ]}
               onPress={() => handleQuickDemo("cook@grandpalace.com")}
             >
-              <Text style={styles.demoBtnText}>🍳 Line Cook (Cook)</Text>
-              <Text style={styles.demoEmail}>cook@grandpalace.com</Text>
+              <Text style={[styles.demoBtnText, { color: colors.textPrimary }]}>🍳 Line Cook (Kitchen Line)</Text>
+              <Text style={[styles.demoEmail, { color: colors.textMuted }]}>cook@grandpalace.com</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -352,73 +488,76 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
-    backgroundColor: "#070B14",
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === "ios" ? 48 : 32,
+    paddingTop: Platform.OS === "ios" ? 44 : 24,
     paddingBottom: 40,
     alignItems: "center",
+  },
+  topBar: {
+    width: "100%",
+    maxWidth: 440,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  statusPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  liveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: "700",
   },
   brandContainer: {
     alignItems: "center",
     marginBottom: 20,
   },
   logoBadge: {
-    width: 58,
-    height: 58,
-    borderRadius: 18,
-    backgroundColor: "rgba(15, 23, 42, 0.8)",
-    borderWidth: 1,
-    borderColor: "rgba(56, 189, 248, 0.4)",
+    width: 60,
+    height: 60,
+    borderRadius: 20,
+    borderWidth: 1.5,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 10,
-    shadowColor: "#38bdf8",
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 4,
   },
   logoIcon: {
-    fontSize: 26,
+    fontSize: 28,
   },
   brandTitle: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "900",
-    color: "#f8fafc",
     letterSpacing: -0.5,
   },
-  brandAccent: {
-    color: "#38bdf8",
-  },
   brandSubtitle: {
-    fontSize: 11,
-    color: "#94a3b8",
+    fontSize: 12,
     marginTop: 4,
     textAlign: "center",
-    maxWidth: 280,
+    maxWidth: 290,
+    fontWeight: "500",
   },
   card: {
     width: "100%",
     maxWidth: 440,
-    backgroundColor: "rgba(13, 20, 36, 0.82)",
     borderRadius: 24,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.12)",
+    borderWidth: 1.5,
     padding: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 8,
   },
   tabContainer: {
     flexDirection: "row",
-    backgroundColor: "rgba(6, 10, 20, 0.7)",
     borderRadius: 14,
     padding: 4,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
   },
   tabButton: {
     flex: 1,
@@ -427,32 +566,22 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   activeTabButton: {
-    backgroundColor: "#0284c7",
-    shadowColor: "#38bdf8",
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.25)",
   },
   tabButtonText: {
     fontSize: 12,
-    fontWeight: "700",
-    color: "#94a3b8",
-  },
-  activeTabButtonText: {
-    color: "#ffffff",
+    fontWeight: "800",
   },
   errorBox: {
-    backgroundColor: "rgba(225, 29, 72, 0.15)",
     borderWidth: 1,
-    borderColor: "rgba(244, 63, 94, 0.4)",
     padding: 10,
     borderRadius: 12,
     marginBottom: 14,
   },
   errorText: {
-    color: "#fda4af",
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: "700",
   },
   signupTypeRow: {
     flexDirection: "row",
@@ -463,24 +592,13 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 9,
     paddingHorizontal: 6,
-    backgroundColor: "rgba(255, 255, 255, 0.04)",
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-  },
-  typeBtnActiveOwner: {
-    borderColor: "#f59e0b",
-    backgroundColor: "rgba(245, 158, 11, 0.18)",
-  },
-  typeBtnActiveAdmin: {
-    borderColor: "#38bdf8",
-    backgroundColor: "rgba(56, 189, 248, 0.18)",
   },
   typeBtnText: {
     fontSize: 11,
-    fontWeight: "700",
-    color: "#f8fafc",
+    fontWeight: "800",
   },
   inputGroup: {
     marginBottom: 14,
@@ -489,26 +607,19 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "800",
     textTransform: "uppercase",
-    color: "#cbd5e1",
     marginBottom: 6,
     letterSpacing: 0.6,
   },
   input: {
-    backgroundColor: "rgba(255, 255, 255, 0.04)",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.12)",
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    color: "#f8fafc",
     fontSize: 13,
-  },
-  inputHighlight: {
-    borderColor: "rgba(245, 158, 11, 0.5)",
+    fontWeight: "600",
   },
   helperText: {
     fontSize: 10,
-    color: "#94a3b8",
     marginTop: 4,
   },
   orgPickerList: {
@@ -517,23 +628,11 @@ const styles = StyleSheet.create({
   orgOption: {
     paddingVertical: 9,
     paddingHorizontal: 12,
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
-  },
-  orgOptionSelected: {
-    borderColor: "#38bdf8",
-    backgroundColor: "rgba(56, 189, 248, 0.15)",
   },
   orgOptionText: {
-    color: "#94a3b8",
     fontSize: 12,
-    fontWeight: "600",
-  },
-  orgOptionTextSelected: {
-    color: "#38bdf8",
-    fontWeight: "800",
   },
   rolePickerList: {
     flexDirection: "row",
@@ -541,78 +640,58 @@ const styles = StyleSheet.create({
   },
   roleOption: {
     flex: 1,
-    paddingVertical: 7,
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
+    paddingVertical: 8,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
     alignItems: "center",
-  },
-  roleOptionSelected: {
-    borderColor: "#38bdf8",
-    backgroundColor: "rgba(56, 189, 248, 0.15)",
   },
   roleOptionText: {
-    color: "#94a3b8",
     fontSize: 11,
   },
-  roleOptionTextSelected: {
-    color: "#38bdf8",
-    fontWeight: "800",
-  },
   submitButton: {
-    backgroundColor: "#0284c7",
-    paddingVertical: 12,
-    borderRadius: 12,
+    borderWidth: 1,
+    paddingVertical: 13,
+    borderRadius: 14,
     alignItems: "center",
     marginTop: 8,
-    shadowColor: "#38bdf8",
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 4,
   },
   submitButtonText: {
     color: "#ffffff",
-    fontSize: 13,
-    fontWeight: "800",
+    fontSize: 14,
+    fontWeight: "900",
+    letterSpacing: 0.3,
   },
   demoSection: {
     width: "100%",
     maxWidth: 440,
     marginTop: 18,
-    padding: 14,
-    backgroundColor: "rgba(13, 20, 36, 0.8)",
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
+    padding: 16,
+    borderRadius: 22,
+    borderWidth: 1.5,
   },
   demoTitle: {
     fontSize: 10,
-    fontWeight: "800",
-    color: "#94a3b8",
+    fontWeight: "900",
     letterSpacing: 0.6,
     textAlign: "center",
-    marginBottom: 10,
+    marginBottom: 12,
   },
   demoGrid: {
-    gap: 6,
+    gap: 8,
   },
   demoBtn: {
-    padding: 9,
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
-    borderRadius: 10,
+    padding: 10,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
   },
   demoBtnText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#f8fafc",
+    fontSize: 12,
+    fontWeight: "800",
   },
   demoEmail: {
-    fontSize: 9,
-    color: "#94a3b8",
+    fontSize: 10,
     fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
     marginTop: 2,
+    fontWeight: "600",
   },
 });

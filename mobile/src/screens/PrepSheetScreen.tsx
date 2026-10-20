@@ -1,6 +1,7 @@
 // ============================================================
 // KitchenPulse Mobile — Prep Sheet Screen
 // Displays AI-generated prep optimization results
+// Tactile Neumorphic styling with Light / Dark theme support
 // ============================================================
 
 import React from "react";
@@ -15,10 +16,12 @@ import {
 } from "react-native";
 import { useKitchenStore } from "../store/useKitchenStore";
 import { usePrepOptimization } from "../hooks/useQueries";
+import { useTheme } from "../store/useThemeStore";
 import type { PrepSuggestion } from "../types";
 
 export default function PrepSheetScreen() {
   const { prepSheet: wsSheet } = useKitchenStore();
+  const { colors } = useTheme();
   const {
     data: fetchedSheet,
     isLoading,
@@ -31,30 +34,37 @@ export default function PrepSheetScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#8B5CF6" />
-        <Text style={styles.loadingText}>Generating prep sheet...</Text>
-        <Text style={styles.loadingSubtext}>AI is analyzing historical data...</Text>
+      <View style={[styles.centered, { backgroundColor: colors.base }]}>
+        <ActivityIndicator size="large" color={colors.accentPurple} />
+        <Text style={[styles.loadingText, { color: colors.textPrimary }]}>Generating prep sheet...</Text>
+        <Text style={[styles.loadingSubtext, { color: colors.textMuted }]}>AI is analyzing kitchen inventory & tickets...</Text>
       </View>
     );
   }
 
   if (!sheet) {
     return (
-      <View style={styles.centered}>
+      <View style={[styles.centered, { backgroundColor: colors.base }]}>
         <Text style={styles.emptyIcon}>🤖</Text>
-        <Text style={styles.emptyTitle}>No Prep Sheet Yet</Text>
-        <Text style={styles.emptyText}>
+        <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>No Prep Sheet Yet</Text>
+        <Text style={[styles.emptyText, { color: colors.textMuted }]}>
           The AI prep optimization hasn't run yet.{"\n"}Trigger it from the
-          backend or wait for the nightly run.
+          dashboard or wait for the shift cycle.
         </Text>
         <Pressable
-          style={styles.refreshBtn}
+          style={[
+            styles.refreshBtn,
+            {
+              backgroundColor: colors.accentPurple,
+              borderColor: "rgba(255, 255, 255, 0.25)",
+            },
+            colors.shadowRaisedSm,
+          ]}
           onPress={() => void refetch()}
           disabled={isRefetching}
         >
           <Text style={styles.refreshBtnText}>
-            {isRefetching ? "Fetching..." : "Try Again"}
+            {isRefetching ? "Fetching..." : "Generate AI Prep"}
           </Text>
         </Pressable>
       </View>
@@ -63,36 +73,61 @@ export default function PrepSheetScreen() {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.base }]}
       contentContainerStyle={styles.content}
       refreshControl={
         <RefreshControl
           refreshing={isRefetching}
           onRefresh={refetch}
-          tintColor="#8B5CF6"
+          tintColor={colors.accentPurple}
         />
       }
     >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>🤖 AI Prep Sheet</Text>
-        <View style={styles.dayBadge}>
-          <Text style={styles.dayText}>{sheet.day_of_week}</Text>
+        <Text style={[styles.title, { color: colors.textPrimary }]}>🤖 AI Prep Targets</Text>
+        <View
+          style={[
+            styles.dayBadge,
+            {
+              backgroundColor: colors.accentPurpleBg,
+              borderColor: `${colors.accentPurple}60`,
+            },
+            colors.shadowRaisedSm,
+          ]}
+        >
+          <Text style={[styles.dayText, { color: colors.accentPurple }]}>{sheet.day_of_week}</Text>
         </View>
       </View>
 
-      <Text style={styles.generatedAt}>
-        Generated: {new Date(sheet.generated_at).toLocaleString()}
+      <Text style={[styles.generatedAt, { color: colors.textMuted }]}>
+        Shift Run: {new Date(sheet.generated_at).toLocaleString()}
       </Text>
 
-      {/* AI Summary */}
-      <View style={styles.summaryCard}>
-        <Text style={styles.summaryTitle}>📝 Manager Summary</Text>
-        <Text style={styles.summaryText}>{sheet.ai_summary}</Text>
+      {/* AI Summary Card */}
+      <View
+        style={[
+          styles.summaryCard,
+          {
+            backgroundColor: colors.card,
+            borderColor: colors.border,
+          },
+          colors.shadowRaised,
+        ]}
+      >
+        <View style={styles.summaryHeaderRow}>
+          <Text style={[styles.summaryTitle, { color: colors.accentPurple }]}>📝 Executive Chef Insight</Text>
+          <View style={[styles.summaryBadge, { backgroundColor: colors.accentPurpleBg }]}>
+            <Text style={[styles.summaryBadgeText, { color: colors.accentPurple }]}>Gemini 3.8 Flash</Text>
+          </View>
+        </View>
+        <View style={[styles.summaryInsetBox, { backgroundColor: colors.sunken, borderColor: colors.borderSubtle }]}>
+          <Text style={[styles.summaryText, { color: colors.textSecondary }]}>{sheet.ai_summary}</Text>
+        </View>
       </View>
 
-      {/* Suggestions */}
-      <Text style={styles.sectionTitle}>Recipe Prep Targets</Text>
+      {/* Suggestions Section Header */}
+      <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Station BOM Prep Recommendations</Text>
 
       {sheet.suggestions.map((suggestion: PrepSuggestion, idx: number) => {
         const isHighWaste = suggestion.waste_pct > 20;
@@ -101,52 +136,62 @@ export default function PrepSheetScreen() {
             key={suggestion.recipe_id}
             style={[
               styles.suggestionCard,
-              isHighWaste ? styles.highWasteCard : null,
+              {
+                backgroundColor: colors.card,
+                borderColor: isHighWaste ? colors.accentRose : colors.border,
+              },
+              colors.shadowRaised,
             ]}
           >
             <View style={styles.suggestionHeader}>
-              <Text style={styles.suggestionName}>
+              <Text style={[styles.suggestionName, { color: colors.textPrimary }]}>
                 {idx + 1}. {suggestion.recipe_name}
               </Text>
               {isHighWaste && (
-                <View style={styles.warnBadge}>
-                  <Text style={styles.warnBadgeText}>⚠️ HIGH WASTE</Text>
+                <View style={[styles.warnBadge, { backgroundColor: colors.accentRoseBg, borderColor: colors.accentRose }]}>
+                  <Text style={[styles.warnBadgeText, { color: colors.accentRose }]}>⚠️ HIGH WASTE</Text>
                 </View>
               )}
             </View>
 
-            {/* Target quantity */}
+            {/* Target quantity metrics */}
             <View style={styles.qtyRow}>
-              <View style={styles.qtyBox}>
-                <Text style={styles.qtyLabel}>AI Target</Text>
-                <Text style={styles.qtyValue}>{suggestion.suggested_prep_qty}</Text>
-                <Text style={styles.qtyUnit}>portions</Text>
+              <View style={[styles.qtyBox, { backgroundColor: colors.sunken, borderColor: colors.borderSubtle }]}>
+                <Text style={[styles.qtyLabel, { color: colors.textMuted }]}>AI Target</Text>
+                <Text style={[styles.qtyValue, { color: colors.accentSky }]}>{suggestion.suggested_prep_qty}</Text>
+                <Text style={[styles.qtyUnit, { color: colors.textMuted }]}>portions</Text>
               </View>
-              <View style={styles.qtyBox}>
-                <Text style={styles.qtyLabel}>Avg Prepped</Text>
-                <Text style={styles.qtyValue}>
+
+              <View style={[styles.qtyBox, { backgroundColor: colors.sunken, borderColor: colors.borderSubtle }]}>
+                <Text style={[styles.qtyLabel, { color: colors.textMuted }]}>Avg Prepped</Text>
+                <Text style={[styles.qtyValue, { color: colors.textPrimary }]}>
                   {suggestion.historical_avg_prepped.toFixed(1)}
                 </Text>
-                <Text style={styles.qtyUnit}>historical</Text>
+                <Text style={[styles.qtyUnit, { color: colors.textMuted }]}>historical</Text>
               </View>
-              <View style={styles.qtyBox}>
-                <Text style={[styles.qtyLabel, { color: isHighWaste ? "#EF4444" : "#94A3B8" }]}>
+
+              <View style={[styles.qtyBox, { backgroundColor: colors.sunken, borderColor: colors.borderSubtle }]}>
+                <Text style={[styles.qtyLabel, { color: isHighWaste ? colors.accentRose : colors.textMuted }]}>
                   Waste %
                 </Text>
                 <Text
                   style={[
                     styles.qtyValue,
-                    { color: isHighWaste ? "#EF4444" : "#10B981" },
+                    { color: isHighWaste ? colors.accentRose : colors.accentEmerald },
                   ]}
                 >
                   {suggestion.waste_pct.toFixed(1)}%
                 </Text>
-                <Text style={styles.qtyUnit}>avg</Text>
+                <Text style={[styles.qtyUnit, { color: colors.textMuted }]}>shift avg</Text>
               </View>
             </View>
 
-            {/* Reasoning */}
-            <Text style={styles.reasoning}>{suggestion.reasoning}</Text>
+            {/* Reasoning Note */}
+            <View style={[styles.reasoningBox, { backgroundColor: colors.sunken, borderColor: colors.borderSubtle }]}>
+              <Text style={[styles.reasoning, { color: colors.textSecondary }]}>
+                💡 {suggestion.reasoning}
+              </Text>
+            </View>
           </View>
         );
       })}
@@ -157,7 +202,6 @@ export default function PrepSheetScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#070B14",
   },
   content: {
     paddingHorizontal: 16,
@@ -168,18 +212,15 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#070B14",
     paddingHorizontal: 28,
     gap: 12,
   },
   loadingText: {
-    color: "#F8FAFC",
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: "800",
     marginTop: 8,
   },
   loadingSubtext: {
-    color: "#94A3B8",
     fontSize: 12,
   },
   emptyIcon: {
@@ -187,26 +228,20 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   emptyTitle: {
-    color: "#F8FAFC",
-    fontSize: 18,
-    fontWeight: "800",
+    fontSize: 19,
+    fontWeight: "900",
   },
   emptyText: {
-    color: "#94A3B8",
     fontSize: 13,
     textAlign: "center",
     lineHeight: 19,
   },
   refreshBtn: {
     marginTop: 14,
-    backgroundColor: "#7C3AED",
     borderRadius: 14,
     paddingHorizontal: 22,
-    paddingVertical: 11,
-    shadowColor: "#8B5CF6",
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 4,
+    paddingVertical: 12,
+    borderWidth: 1,
   },
   refreshBtnText: {
     color: "#FFFFFF",
@@ -220,51 +255,61 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   title: {
-    color: "#F8FAFC",
     fontSize: 20,
     fontWeight: "900",
     letterSpacing: -0.3,
   },
   dayBadge: {
-    backgroundColor: "rgba(139, 92, 246, 0.2)",
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 14,
+    paddingVertical: 4.5,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(139, 92, 246, 0.4)",
   },
   dayText: {
-    color: "#C4B5FD",
     fontSize: 11,
     fontWeight: "800",
   },
   generatedAt: {
-    color: "#64748B",
     fontSize: 11,
     marginBottom: 16,
+    fontWeight: "500",
   },
   summaryCard: {
-    backgroundColor: "rgba(139, 92, 246, 0.08)",
-    borderRadius: 18,
+    borderRadius: 20,
     padding: 16,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: "rgba(139, 92, 246, 0.3)",
+  },
+  summaryHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
   },
   summaryTitle: {
-    color: "#C4B5FD",
-    fontSize: 12,
+    fontSize: 13,
+    fontWeight: "900",
+    letterSpacing: 0.3,
+  },
+  summaryBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  summaryBadgeText: {
+    fontSize: 10,
     fontWeight: "800",
-    marginBottom: 6,
-    letterSpacing: 0.5,
+  },
+  summaryInsetBox: {
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
   },
   summaryText: {
-    color: "#E2E8F0",
     fontSize: 13,
     lineHeight: 19,
   },
   sectionTitle: {
-    color: "#94A3B8",
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 0.8,
@@ -272,20 +317,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   suggestionCard: {
-    backgroundColor: "rgba(18, 26, 44, 0.72)",
-    borderRadius: 18,
-    padding: 15,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  highWasteCard: {
-    borderColor: "rgba(239, 68, 68, 0.6)",
-    backgroundColor: "rgba(239, 68, 68, 0.06)",
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 14,
+    borderWidth: 1.5,
   },
   suggestionHeader: {
     flexDirection: "row",
@@ -294,23 +329,19 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   suggestionName: {
-    color: "#F8FAFC",
-    fontSize: 15,
-    fontWeight: "800",
+    fontSize: 16,
+    fontWeight: "900",
     flex: 1,
   },
   warnBadge: {
-    backgroundColor: "rgba(239, 68, 68, 0.2)",
     paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingVertical: 3.5,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "rgba(239, 68, 68, 0.4)",
   },
   warnBadgeText: {
-    color: "#FCA5A5",
     fontSize: 9,
-    fontWeight: "800",
+    fontWeight: "900",
   },
   qtyRow: {
     flexDirection: "row",
@@ -319,33 +350,32 @@ const styles = StyleSheet.create({
   },
   qtyBox: {
     flex: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.04)",
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 10,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
   },
   qtyLabel: {
-    color: "#94A3B8",
     fontSize: 10,
-    fontWeight: "700",
+    fontWeight: "800",
     letterSpacing: 0.5,
     marginBottom: 3,
   },
   qtyValue: {
-    color: "#F8FAFC",
     fontSize: 20,
     fontWeight: "900",
   },
   qtyUnit: {
-    color: "#64748B",
     fontSize: 9,
     marginTop: 2,
     fontWeight: "600",
   },
+  reasoningBox: {
+    borderRadius: 12,
+    padding: 10,
+    borderWidth: 1,
+  },
   reasoning: {
-    color: "#94A3B8",
     fontSize: 12,
     lineHeight: 17,
     fontStyle: "italic",

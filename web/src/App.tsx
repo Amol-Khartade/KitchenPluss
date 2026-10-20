@@ -211,17 +211,14 @@ export function App() {
 
   // ---------------------------------------------------------------- //
   // Strict Authentication Guard
-  // Without user login, NEVER show the dashboard!
   // ---------------------------------------------------------------- //
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-bg-primary flex flex-col items-center justify-center space-y-4">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-600 via-indigo-600 to-amber-500 p-0.5 animate-pulse">
-          <div className="w-full h-full bg-bg-surface rounded-[14px] flex items-center justify-center">
-            <Flame className="w-7 h-7 text-amber-400" />
-          </div>
+      <div className="min-h-screen bg-neu-base text-slate-800 dark:text-slate-100 flex flex-col items-center justify-center space-y-4 transition-colors duration-200">
+        <div className="w-16 h-16 rounded-2xl bg-neu-surface border border-neu-border shadow-neu-raised flex items-center justify-center">
+          <Flame className="w-8 h-8 text-amber-500 animate-pulse" />
         </div>
-        <div className="text-xs text-slate-400 font-mono">Authenticating KitchenPulse session...</div>
+        <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">Authenticating KitchenPulse session...</div>
       </div>
     );
   }
@@ -231,7 +228,7 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-primary text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-neu-base text-slate-800 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
       {/* Global Navigation Header with Hotel Branding */}
       <Header
         activeTab={activeTab}
@@ -244,7 +241,7 @@ export function App() {
       />
 
       {/* Main Workspace Body */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-6">
         {/* Tab 1: Live Kitchen Display System (KDS) */}
         {activeTab === 'kds' && (
           <div className="space-y-4">

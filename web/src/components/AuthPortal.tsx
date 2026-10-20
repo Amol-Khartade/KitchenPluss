@@ -18,6 +18,7 @@ import {
 import { useAuth } from '../context/AuthContext.js';
 import { authApi } from '../api/client.js';
 import { Organization } from '../types/index.js';
+import { ThemeToggle } from './ThemeToggle.js';
 
 export const AuthPortal: React.FC = () => {
   const { login, signup, loginWithGoogle } = useAuth();
@@ -80,7 +81,11 @@ export const AuthPortal: React.FC = () => {
         return;
       }
       if (signupType === 'new_org' && !orgName.trim()) {
-        setError('Please enter the name of your Hotel or Restaurant.');
+        setError('Please provide a Hotel or Restaurant Group name.');
+        return;
+      }
+      if (signupType === 'join_org' && !selectedOrgId) {
+        setError('Please select an organization to join.');
         return;
       }
     }
@@ -91,18 +96,17 @@ export const AuthPortal: React.FC = () => {
       if (mode === 'login') {
         await login({ email: email.trim().toLowerCase(), password });
       } else {
-        const payloadRole = signupType === 'new_org' ? 'Owner' : role;
         await signup({
-          name: name.trim() || email.split('@')[0],
           email: email.trim().toLowerCase(),
           password,
-          role: payloadRole,
-          organization_id: signupType === 'join_org' ? selectedOrgId : undefined,
+          name: name.trim() || email.split('@')[0],
+          role: signupType === 'new_org' ? 'Owner' : role,
           organization_name: signupType === 'new_org' ? orgName.trim() : undefined,
+          organization_id: signupType === 'join_org' ? selectedOrgId : undefined,
         });
       }
     } catch (err: any) {
-      setError(err.message || 'Authentication failed. Please verify credentials.');
+      setError(err.message || 'Authentication failed. Please check your credentials.');
     } finally {
       setIsLoading(false);
     }
@@ -110,6 +114,8 @@ export const AuthPortal: React.FC = () => {
 
   const handleQuickDemoLogin = async (demoEmail: string) => {
     setError(null);
+    setEmail(demoEmail);
+    setPassword('password123');
     setIsLoading(true);
     try {
       await login({ email: demoEmail, password: 'password123' });
@@ -123,74 +129,74 @@ export const AuthPortal: React.FC = () => {
   const handleGoogleSignIn = async () => {
     setError(null);
     setIsGoogleLoading(true);
+
     try {
-      const promptEmail = window.prompt(
-        'Enter your Google account email to sign in (or use default chef account):',
-        email || 'executive.chef@gmail.com'
-      );
-      if (!promptEmail) {
-        setIsGoogleLoading(false);
-        return;
+      if (typeof window !== 'undefined' && window.google?.accounts?.id) {
+        window.google.accounts.id.initialize({
+          client_id:
+            (import.meta as any).env?.VITE_GOOGLE_CLIENT_ID ||
+            '1029384756-demo-client-id.apps.googleusercontent.com',
+          callback: async (response: any) => {
+            try {
+              if (response.credential) {
+                await loginWithGoogle({ credential: response.credential });
+              }
+            } catch (err: any) {
+              setError(err.message || 'Google authentication failed');
+            } finally {
+              setIsGoogleLoading(false);
+            }
+          },
+        });
+        window.google.accounts.id.prompt();
+      } else {
+        const dummyToken = `demo_google_token_${Date.now()}`;
+        await loginWithGoogle({ credential: dummyToken });
       }
-
-      const cleanEmail = promptEmail.toLowerCase().trim();
-      const extractedName = cleanEmail.split('@')[0].replace('.', ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-
-      await loginWithGoogle({
-        email: cleanEmail,
-        name: extractedName,
-        picture: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(extractedName)}&backgroundColor=0284c7`,
-        googleId: `google-user-${Date.now()}`,
-        organization_id: selectedOrgId || undefined,
-        role: 'Executive Chef',
-      });
     } catch (err: any) {
-      setError(err.message || 'Google sign-in failed');
+      setError(err.message || 'Google authentication failed');
     } finally {
       setIsGoogleLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#070B14] text-slate-100 flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden select-none font-sans">
-      {/* Dynamic Ambient Glowing Light Mesh */}
-      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-sky-500/15 rounded-full blur-[120px] pointer-events-none animate-float-slow" />
-      <div className="absolute top-1/3 -right-32 w-96 h-96 bg-indigo-500/15 rounded-full blur-[120px] pointer-events-none animate-float-slow" style={{ animationDelay: '3s' }} />
-      <div className="absolute -bottom-32 left-1/3 w-96 h-96 bg-amber-500/10 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen bg-neu-base text-slate-800 dark:text-slate-100 flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden select-none font-sans transition-colors duration-200">
+      {/* Top Floating Theme Switcher */}
+      <div className="absolute top-5 right-5 sm:top-6 sm:right-8 z-30 flex items-center gap-2">
+        <ThemeToggle variant="pill" />
+      </div>
 
-      {/* Main Glass Portal Container */}
-      <div className="relative w-full max-w-md glass-panel border border-white/15 rounded-3xl shadow-glass-lg overflow-hidden backdrop-blur-2xl z-10">
+      {/* Main Neumorphic Portal Container */}
+      <div className="relative w-full max-w-md bg-neu-surface border border-neu-border rounded-3xl shadow-neu-raised-lg overflow-hidden z-10">
         {/* Top Accent Gradient Bar */}
-        <div className="h-1.5 bg-gradient-to-r from-sky-400 via-indigo-500 to-amber-400" />
+        <div className="h-1.5 bg-gradient-to-r from-sky-500 via-indigo-500 to-amber-500" />
 
         {/* Brand Header */}
         <div className="p-8 pb-4 text-center">
-          <div className="relative inline-flex mb-4">
-            <div className="absolute -inset-1 bg-gradient-to-tr from-sky-500 via-indigo-500 to-amber-500 rounded-2xl blur opacity-75" />
-            <div className="relative w-14 h-14 rounded-2xl bg-slate-900/90 border border-white/20 p-0.5 shadow-xl flex items-center justify-center">
-              <Flame className="w-7 h-7 text-amber-400 animate-pulse" />
-            </div>
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-neu-surface border border-neu-border flex items-center justify-center shadow-neu-raised mb-4">
+            <Flame className="w-7 h-7 text-amber-500 animate-pulse" />
           </div>
 
-          <h1 className="text-2xl font-black tracking-tight text-white drop-shadow-sm">
-            Kitchen<span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-indigo-300">Pulse</span>
+          <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white drop-shadow-sm">
+            Kitchen<span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-500">Pulse</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Autonomous Multi-Tenant Kitchen Operations System
           </p>
 
           {/* Mode Switcher Tabs */}
-          <div className="flex items-center bg-slate-950/60 p-1 rounded-2xl border border-white/10 mt-6 backdrop-blur-md">
+          <div className="flex items-center bg-neu-sunken p-1 rounded-2xl border border-neu-borderSubtle shadow-neu-inset-sm mt-6">
             <button
               type="button"
               onClick={() => {
                 setMode('login');
                 setError(null);
               }}
-              className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all duration-200 ${
+              className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer active:scale-95 ${
                 mode === 'login'
                   ? 'bg-gradient-to-r from-sky-500 to-sky-600 text-white shadow-glow-sky border border-sky-400/40'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Sign In
@@ -201,10 +207,10 @@ export const AuthPortal: React.FC = () => {
                 setMode('signup');
                 setError(null);
               }}
-              className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all duration-200 ${
+              className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer active:scale-95 ${
                 mode === 'signup'
                   ? 'bg-gradient-to-r from-sky-500 to-sky-600 text-white shadow-glow-sky border border-sky-400/40'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Register Hotel / Team
@@ -214,8 +220,8 @@ export const AuthPortal: React.FC = () => {
 
         {/* Error Notification */}
         {error && (
-          <div className="mx-8 mb-4 p-3 bg-rose-950/70 border border-rose-500/40 text-rose-300 rounded-xl text-xs flex items-center space-x-2 animate-in fade-in shadow-sm">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <div className="mx-8 mb-4 p-3 bg-rose-500/15 border border-rose-500/40 text-rose-800 dark:text-rose-300 rounded-xl text-xs flex items-center space-x-2 animate-in fade-in shadow-sm">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-500" />
             <span>{error}</span>
           </div>
         )}
@@ -225,102 +231,76 @@ export const AuthPortal: React.FC = () => {
           {mode === 'signup' && (
             <>
               {/* Registration Category Selector */}
-              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-950/60 rounded-xl border border-white/10">
+              <div className="grid grid-cols-2 gap-2 p-1 bg-neu-sunken rounded-xl border border-neu-borderSubtle shadow-neu-inset-sm">
                 <button
                   type="button"
                   onClick={() => setSignupType('new_org')}
-                  className={`py-2 px-2 text-[11px] font-bold rounded-lg flex items-center justify-center space-x-1.5 transition-all ${
+                  className={`py-2 px-2 text-[11px] font-bold rounded-lg flex items-center justify-center space-x-1.5 transition-all cursor-pointer ${
                     signupType === 'new_org'
-                      ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40 shadow-glow-amber'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-amber-500/25 text-amber-800 dark:text-amber-300 border border-amber-500/40 shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400'
                   }`}
                 >
-                  <Crown className="w-3.5 h-3.5 text-amber-400" />
+                  <Crown className="w-3.5 h-3.5 text-amber-500" />
                   <span>New Hotel (Owner)</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSignupType('join_org')}
-                  className={`py-2 px-2 text-[11px] font-bold rounded-lg flex items-center justify-center space-x-1.5 transition-all ${
+                  className={`py-2 px-2 text-[11px] font-bold rounded-lg flex items-center justify-center space-x-1.5 transition-all cursor-pointer ${
                     signupType === 'join_org'
-                      ? 'bg-sky-500/25 text-sky-300 border border-sky-500/40 shadow-glow-sky'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-sky-500/25 text-sky-800 dark:text-sky-300 border border-sky-500/40 shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400'
                   }`}
                 >
-                  <Shield className="w-3.5 h-3.5 text-sky-400" />
-                  <span>Join Team (Admin/Staff)</span>
+                  <Shield className="w-3.5 h-3.5 text-sky-500" />
+                  <span>Join Team</span>
                 </button>
               </div>
 
-              {/* Organization Field based on selection */}
+              {/* Organization Fields */}
               {signupType === 'new_org' ? (
                 <div>
-                  <label className="block text-[11px] font-semibold text-amber-300 uppercase tracking-wider mb-1.5">
-                    Hotel / Restaurant Client Name
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                    Hotel or Restaurant Group Name *
                   </label>
                   <div className="relative">
-                    <Building2 className="w-4 h-4 text-amber-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <Building2 className="w-4 h-4 text-amber-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
                       required
                       value={orgName}
                       onChange={(e) => setOrgName(e.target.value)}
-                      placeholder="e.g. The Royal Grand Hotel & Spa"
-                      className="w-full glass-input border-amber-500/40 focus:border-amber-400 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                      placeholder="e.g. The Ritz London, Bistro Bella"
+                      className="w-full bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500"
                     />
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-1">
-                    You will be assigned the <span className="text-amber-400 font-semibold">Owner</span> role with full access to all stock, users & reports.
-                  </p>
                 </div>
               ) : (
-                <>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                      Select Hotel / Client Organization
-                    </label>
-                    <div className="relative">
-                      <Building2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                      <select
-                        value={selectedOrgId}
-                        onChange={(e) => setSelectedOrgId(e.target.value)}
-                        className="w-full glass-input focus:border-sky-400 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-sky-400 cursor-pointer"
-                      >
-                        {organizations.map((o) => (
-                          <option key={o.id} value={o.id} className="bg-slate-900 text-slate-200">
-                            {o.name} ({o.code})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                    Select Organization to Join *
+                  </label>
+                  <div className="relative">
+                    <Building2 className="w-4 h-4 text-sky-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <select
+                      value={selectedOrgId}
+                      onChange={(e) => setSelectedOrgId(e.target.value)}
+                      className="w-full bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 cursor-pointer"
+                    >
+                      {organizations.map((org) => (
+                        <option key={org.id} value={org.id} className="bg-neu-surface text-slate-900 dark:text-white">
+                          {org.name} ({org.code})
+                        </option>
+                      ))}
+                    </select>
                   </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                      Assigned Role
-                    </label>
-                    <div className="relative">
-                      <Shield className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                      <select
-                        value={role}
-                        onChange={(e) => setRole(e.target.value)}
-                        className="w-full glass-input focus:border-sky-400 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-sky-400 cursor-pointer"
-                      >
-                        <option value="Admin" className="bg-slate-900 text-slate-200">Admin (Full User & Stock Access)</option>
-                        <option value="Executive Chef" className="bg-slate-900 text-slate-200">Executive Chef</option>
-                        <option value="Sous Chef" className="bg-slate-900 text-slate-200">Sous Chef</option>
-                        <option value="Line Cook" className="bg-slate-900 text-slate-200">Line Cook</option>
-                        <option value="Station Lead" className="bg-slate-900 text-slate-200">Station Lead</option>
-                        <option value="Kitchen Manager" className="bg-slate-900 text-slate-200">Kitchen Manager</option>
-                      </select>
-                    </div>
-                  </div>
-                </>
+                </div>
               )}
 
               {/* Full Name */}
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                   Your Full Name
                 </label>
                 <div className="relative">
@@ -330,18 +310,40 @@ export const AuthPortal: React.FC = () => {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Marco Pierre White"
-                    className="w-full glass-input focus:border-sky-400 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-400"
+                    placeholder="e.g. Chef Marco Pierre"
+                    className="w-full bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500"
                   />
                 </div>
               </div>
+
+              {/* Role Selector (Join Org only) */}
+              {signupType === 'join_org' && (
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                    Assigned Kitchen Role
+                  </label>
+                  <div className="relative">
+                    <ChefHat className="w-4 h-4 text-sky-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <select
+                      value={role}
+                      onChange={(e) => setRole(e.target.value)}
+                      className="w-full bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 cursor-pointer"
+                    >
+                      <option value="Admin" className="bg-neu-surface text-slate-900 dark:text-white">Admin (Operations Manager)</option>
+                      <option value="Executive Chef" className="bg-neu-surface text-slate-900 dark:text-white">Executive Chef</option>
+                      <option value="Sous Chef" className="bg-neu-surface text-slate-900 dark:text-white">Sous Chef</option>
+                      <option value="Line Cook" className="bg-neu-surface text-slate-900 dark:text-white">Line Cook / Station Lead</option>
+                    </select>
+                  </div>
+                </div>
+              )}
             </>
           )}
 
           {/* Email Address */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Email Address
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+              Work Email Address
             </label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -351,7 +353,7 @@ export const AuthPortal: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="chef@kitchenpulse.io"
-                className="w-full glass-input focus:border-sky-400 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-400 font-mono"
+                className="w-full bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 font-mono"
               />
             </div>
           </div>
@@ -359,7 +361,7 @@ export const AuthPortal: React.FC = () => {
           {/* Password */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">
+              <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                 Password
               </label>
               {mode === 'signup' && (
@@ -374,12 +376,12 @@ export const AuthPortal: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"
-                className="w-full glass-input focus:border-sky-400 rounded-xl pl-10 pr-10 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-400 font-mono"
+                className="w-full bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl pl-10 pr-10 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 font-mono"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -389,7 +391,7 @@ export const AuthPortal: React.FC = () => {
           {/* Confirm Password (Signup only) */}
           {mode === 'signup' && (
             <div>
-              <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                 Confirm Password
               </label>
               <div className="relative">
@@ -400,7 +402,7 @@ export const AuthPortal: React.FC = () => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full glass-input focus:border-sky-400 rounded-xl pl-10 pr-10 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-400 font-mono"
+                  className="w-full bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl pl-10 pr-10 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 font-mono"
                 />
               </div>
             </div>
@@ -410,7 +412,7 @@ export const AuthPortal: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex items-center justify-center space-x-2 py-3 px-4 bg-gradient-to-r from-sky-500 via-indigo-600 to-sky-600 hover:from-sky-400 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-glow-sky hover:shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 mt-2"
+            className="w-full flex items-center justify-center space-x-2 py-3 px-4 bg-gradient-to-r from-sky-500 via-indigo-600 to-sky-600 hover:from-sky-400 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-glow-sky transition-all active:scale-[0.98] disabled:opacity-50 mt-2 cursor-pointer"
           >
             {isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -427,10 +429,10 @@ export const AuthPortal: React.FC = () => {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={isGoogleLoading}
-            className="w-full flex items-center justify-center space-x-2 py-2.5 px-4 bg-slate-900/60 hover:bg-slate-800/80 border border-white/10 text-slate-200 text-xs font-semibold rounded-xl transition-all backdrop-blur-md hover:border-white/20"
+            className="w-full flex items-center justify-center space-x-2 py-2.5 px-4 bg-neu-surface hover:bg-neu-hover border border-neu-border text-slate-800 dark:text-slate-200 text-xs font-semibold rounded-xl transition-all shadow-neu-raised-sm hover:shadow-neu-raised active:shadow-neu-inset-sm cursor-pointer"
           >
             {isGoogleLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin text-sky-400" />
+              <Loader2 className="w-4 h-4 animate-spin text-sky-500" />
             ) : (
               <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
                 <path
@@ -456,57 +458,57 @@ export const AuthPortal: React.FC = () => {
         </form>
 
         {/* Quick Demo Accounts Banner for Instant Verification */}
-        <div className="bg-slate-950/70 border-t border-white/10 p-4 backdrop-blur-md">
-          <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider text-center mb-2.5">
+        <div className="bg-neu-sunken border-t border-neu-borderSubtle p-4 shadow-neu-inset-sm">
+          <div className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider text-center mb-2.5">
             ⚡ Quick Demo Accounts (1-Click Switch)
           </div>
           <div className="grid grid-cols-2 gap-2 text-[11px]">
             <button
               type="button"
               onClick={() => handleQuickDemoLogin('owner@grandpalace.com')}
-              className="p-2.5 rounded-xl bg-slate-900/60 hover:bg-slate-800/80 border border-amber-500/30 hover:border-amber-500/60 text-left transition-all backdrop-blur-md group"
+              className="p-2.5 rounded-xl bg-neu-surface hover:bg-neu-hover border border-amber-500/30 hover:border-amber-500/60 text-left transition-all shadow-neu-raised-sm hover:shadow-neu-raised active:shadow-neu-inset-sm group cursor-pointer"
             >
-              <div className="font-bold text-amber-300 flex items-center gap-1 group-hover:text-amber-200">
-                <Crown className="w-3.5 h-3.5 text-amber-400" />
+              <div className="font-bold text-amber-700 dark:text-amber-300 flex items-center gap-1">
+                <Crown className="w-3.5 h-3.5 text-amber-500" />
                 Grand Palace (Owner)
               </div>
-              <div className="text-[9px] text-slate-400 font-mono mt-0.5">owner@grandpalace.com</div>
+              <div className="text-[9px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">owner@grandpalace.com</div>
             </button>
 
             <button
               type="button"
               onClick={() => handleQuickDemoLogin('admin@grandpalace.com')}
-              className="p-2.5 rounded-xl bg-slate-900/60 hover:bg-slate-800/80 border border-sky-500/30 hover:border-sky-500/60 text-left transition-all backdrop-blur-md group"
+              className="p-2.5 rounded-xl bg-neu-surface hover:bg-neu-hover border border-sky-500/30 hover:border-sky-500/60 text-left transition-all shadow-neu-raised-sm hover:shadow-neu-raised active:shadow-neu-inset-sm group cursor-pointer"
             >
-              <div className="font-bold text-sky-300 flex items-center gap-1 group-hover:text-sky-200">
-                <Shield className="w-3.5 h-3.5 text-sky-400" />
+              <div className="font-bold text-sky-700 dark:text-sky-300 flex items-center gap-1">
+                <Shield className="w-3.5 h-3.5 text-sky-500" />
                 Grand Palace (Admin)
               </div>
-              <div className="text-[9px] text-slate-400 font-mono mt-0.5">admin@grandpalace.com</div>
+              <div className="text-[9px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">admin@grandpalace.com</div>
             </button>
 
             <button
               type="button"
               onClick={() => handleQuickDemoLogin('owner@bellanapoli.com')}
-              className="p-2.5 rounded-xl bg-slate-900/60 hover:bg-slate-800/80 border border-emerald-500/30 hover:border-emerald-500/60 text-left transition-all backdrop-blur-md group"
+              className="p-2.5 rounded-xl bg-neu-surface hover:bg-neu-hover border border-emerald-500/30 hover:border-emerald-500/60 text-left transition-all shadow-neu-raised-sm hover:shadow-neu-raised active:shadow-neu-inset-sm group cursor-pointer"
             >
-              <div className="font-bold text-emerald-300 flex items-center gap-1 group-hover:text-emerald-200">
-                <Crown className="w-3.5 h-3.5 text-emerald-400" />
+              <div className="font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+                <Crown className="w-3.5 h-3.5 text-emerald-500" />
                 Bella Napoli (Owner)
               </div>
-              <div className="text-[9px] text-slate-400 font-mono mt-0.5">owner@bellanapoli.com</div>
+              <div className="text-[9px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">owner@bellanapoli.com</div>
             </button>
 
             <button
               type="button"
               onClick={() => handleQuickDemoLogin('cook@grandpalace.com')}
-              className="p-2.5 rounded-xl bg-slate-900/60 hover:bg-slate-800/80 border border-white/10 hover:border-white/20 text-left transition-all backdrop-blur-md group"
+              className="p-2.5 rounded-xl bg-neu-surface hover:bg-neu-hover border border-neu-border text-left transition-all shadow-neu-raised-sm hover:shadow-neu-raised active:shadow-neu-inset-sm group cursor-pointer"
             >
-              <div className="font-bold text-slate-300 flex items-center gap-1 group-hover:text-white">
-                <ChefHat className="w-3.5 h-3.5 text-slate-400" />
+              <div className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                <ChefHat className="w-3.5 h-3.5 text-slate-500" />
                 Line Cook (Cook)
               </div>
-              <div className="text-[9px] text-slate-400 font-mono mt-0.5">cook@grandpalace.com</div>
+              <div className="text-[9px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">cook@grandpalace.com</div>
             </button>
           </div>
         </div>

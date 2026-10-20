@@ -1,6 +1,6 @@
 // ============================================================
 // KitchenPulse Mobile — Root App Entry
-// Strict Multi-Tenant Auth Guard & Station Navigation
+// Strict Multi-Tenant Auth Guard, Neumorphic UI & Theme Toggle
 // ============================================================
 
 import "react-native-reanimated";
@@ -20,6 +20,8 @@ import {
 import { useSocket } from "./src/hooks/useSocket";
 import { useKitchenStore } from "./src/store/useKitchenStore";
 import { useAuthStore } from "./src/store/useAuthStore";
+import { useTheme } from "./src/store/useThemeStore";
+import { ThemeToggle } from "./src/components/ui/ThemeToggle";
 import KitchenQueueScreen from "./src/screens/KitchenQueueScreen";
 import PrepSheetScreen from "./src/screens/PrepSheetScreen";
 import WasteFormScreen from "./src/screens/WasteFormScreen";
@@ -37,13 +39,14 @@ const queryClient = new QueryClient({
 type Tab = "queue" | "prep" | "waste";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: "queue", label: "Kitchen", icon: "🍽️" },
+  { id: "queue", label: "KDS Queue", icon: "🍽️" },
   { id: "prep", label: "Prep AI", icon: "🤖" },
-  { id: "waste", label: "EOD Log", icon: "📋" },
+  { id: "waste", label: "Scrap Log", icon: "📋" },
 ];
 
 function AppContent() {
   const { isAuthenticated, isHydrated, user, organization, logout } = useAuthStore();
+  const { colors, isDark } = useTheme();
   const [activeTab, setActiveTab] = React.useState<Tab>("queue");
   const { stockAlerts, clearAlerts } = useKitchenStore();
 
@@ -53,16 +56,16 @@ function AppContent() {
   // Wait for MMKV storage rehydration before deciding to show login screen
   if (!isHydrated) {
     return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
-        <ActivityIndicator size="large" color="#38bdf8" />
-        <Text style={{ color: "#94a3b8", fontSize: 12, marginTop: 12, fontFamily: Platform.OS === "ios" ? "Courier" : "monospace" }}>
-          Restoring station session...
+      <View style={[styles.container, { backgroundColor: colors.base, justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color={colors.accentSky} />
+        <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 12, fontFamily: Platform.OS === "ios" ? "Courier" : "monospace" }}>
+          Restoring kitchen station session...
         </Text>
       </View>
     );
   }
 
-  // Strict Authentication Guard: Without login, DO NOT show dashboard!
+  // Strict Authentication Guard: Without login, show Auth Screen!
   if (!isAuthenticated) {
     return <AuthScreen />;
   }
@@ -71,44 +74,66 @@ function AppContent() {
   const isAdmin = user?.role === "Admin";
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
+    <View style={[styles.container, { backgroundColor: colors.base }]}>
+      <StatusBar style={isDark ? "light" : "dark"} />
 
       {/* Top Station Header with Hotel / Client Organization Info */}
-      <View style={styles.header}>
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: colors.surface,
+            borderBottomColor: colors.border,
+          },
+          colors.shadowRaisedSm,
+        ]}
+      >
         <View style={styles.headerLeft}>
           <View style={styles.brandStack}>
-            <Text style={styles.headerBrand}>
-              Kitchen<Text style={styles.headerBrandAccent}>Pulse</Text>
+            <Text style={[styles.headerBrand, { color: colors.textPrimary }]}>
+              Kitchen<Text style={{ color: colors.accentSky }}>Pulse</Text>
             </Text>
-            <Text style={styles.headerOrgText} numberOfLines={1}>
-              🏨 {organization?.name || "Kitchen Operations"}
-            </Text>
+            <View style={[styles.orgPill, { backgroundColor: colors.sunken, borderColor: colors.borderSubtle }]}>
+              <Text style={[styles.headerOrgText, { color: colors.accentSky }]} numberOfLines={1}>
+                🏨 {organization?.name || "Kitchen Operations"}
+              </Text>
+            </View>
           </View>
         </View>
 
         <View style={styles.headerRight}>
-          <View style={styles.userRoleBadge}>
-            <Text style={styles.userRoleText}>
+          {/* Neumorphic Theme Switcher */}
+          <ThemeToggle compact />
+
+          {/* User Role Badge */}
+          <View style={[styles.userRoleBadge, { backgroundColor: colors.sunken, borderColor: colors.borderSubtle }]}>
+            <Text style={[styles.userRoleText, { color: colors.textSecondary }]}>
               {isOwner ? "👑 " : isAdmin ? "🛡️ " : "🍳 "}
-              {user?.name} ({user?.role})
+              {user?.name?.split(' ')[0]}
             </Text>
           </View>
 
-          <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
-            <Text style={styles.logoutBtnText}>Sign Out</Text>
+          {/* Sign Out Button */}
+          <TouchableOpacity
+            style={[styles.logoutBtn, { backgroundColor: colors.accentRoseBg, borderColor: colors.accentRose }]}
+            onPress={logout}
+          >
+            <Text style={[styles.logoutBtnText, { color: colors.accentRose }]}>Sign Out</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Stock alert banner */}
       {stockAlerts.length > 0 && (
-        <Pressable style={styles.alertBanner} onPress={clearAlerts}>
-          <Text style={styles.alertText}>
+        <Pressable
+          style={[styles.alertBanner, { backgroundColor: colors.accentRoseBg, borderBottomColor: colors.accentRose }]}
+          onPress={clearAlerts}
+        >
+          <Text style={[styles.alertText, { color: colors.accentRose }]}>
             🚨 {stockAlerts.length} stock alert(s) — Tap to dismiss
           </Text>
-          <Text style={styles.alertDetail}>
-            {stockAlerts[0]?.ingredient_name} is low!
+          <Text style={[styles.alertDetail, { color: colors.textSecondary }]}>
+            {stockAlerts[0]?.ingredient_name} below safety line!
           </Text>
         </Pressable>
       )}
@@ -120,21 +145,43 @@ function AppContent() {
         {activeTab === "waste" && <WasteFormScreen />}
       </View>
 
-      {/* Floating Bottom Frosted Glass Dock */}
+      {/* Floating Bottom Neumorphic Dock */}
       <View style={styles.tabBarWrapper}>
-        <View style={styles.tabBar}>
+        <View
+          style={[
+            styles.tabBar,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+            colors.shadowRaisedLg,
+          ]}
+        >
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <Pressable
                 key={tab.id}
-                style={[styles.tab, isActive && styles.activeTab]}
+                style={[
+                  styles.tab,
+                  isActive
+                    ? [
+                        styles.activeTab,
+                        {
+                          backgroundColor: colors.accentSkyBg,
+                          borderColor: colors.accentSky,
+                        },
+                        colors.shadowRaisedSm,
+                      ]
+                    : { borderColor: "transparent" },
+                ]}
                 onPress={() => setActiveTab(tab.id)}
               >
                 <Text style={styles.tabIcon}>{tab.icon}</Text>
                 <Text
                   style={[
                     styles.tabLabel,
+                    { color: isActive ? colors.accentSky : colors.textMuted },
                     isActive && styles.activeTabLabel,
                   ]}
                 >
@@ -150,8 +197,10 @@ function AppContent() {
 }
 
 export default function App() {
+  const { colors } = useTheme();
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.base }]}>
       <QueryClientProvider client={queryClient}>
         <AppContent />
       </QueryClientProvider>
@@ -162,21 +211,17 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#070B14",
   },
   container: {
     flex: 1,
-    backgroundColor: "#070B14",
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: "rgba(13, 20, 36, 0.85)",
+    paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255, 255, 255, 0.08)",
   },
   headerLeft: {
     flexDirection: "row",
@@ -188,21 +233,23 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerBrand: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: "900",
-    color: "#f8fafc",
     letterSpacing: -0.3,
-    lineHeight: 18,
+    lineHeight: 20,
   },
-  headerBrandAccent: {
-    color: "#38bdf8",
+  orgPill: {
+    marginTop: 2,
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: 6,
+    borderWidth: 1,
+    alignSelf: "flex-start",
   },
   headerOrgText: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#38bdf8",
-    marginTop: 2,
-    maxWidth: 180,
+    maxWidth: 160,
   },
   headerRight: {
     flexDirection: "row",
@@ -210,75 +257,58 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   userRoleBadge: {
-    backgroundColor: "rgba(255, 255, 255, 0.06)",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.12)",
   },
   userRoleText: {
     fontSize: 10,
-    color: "#cbd5e1",
-    fontWeight: "600",
+    fontWeight: "700",
   },
   logoutBtn: {
-    backgroundColor: "rgba(225, 29, 72, 0.12)",
     paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingVertical: 4.5,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "rgba(225, 29, 72, 0.3)",
   },
   logoutBtnText: {
     fontSize: 10,
     fontWeight: "700",
-    color: "#fda4af",
   },
   alertBanner: {
-    backgroundColor: "rgba(159, 18, 57, 0.8)",
     paddingHorizontal: 16,
     paddingVertical: 8,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(244, 63, 94, 0.3)",
   },
   alertText: {
-    color: "#ffe4e6",
     fontSize: 12,
     fontWeight: "700",
   },
   alertDetail: {
-    color: "#fecdd3",
     fontSize: 11,
   },
   screen: {
     flex: 1,
-    paddingBottom: Platform.OS === "ios" ? 75 : 65,
+    paddingBottom: Platform.OS === "ios" ? 82 : 72,
   },
   tabBarWrapper: {
     position: "absolute",
-    bottom: Platform.OS === "ios" ? 18 : 10,
+    bottom: Platform.OS === "ios" ? 18 : 12,
     left: 16,
     right: 16,
     alignItems: "center",
   },
   tabBar: {
     flexDirection: "row",
-    backgroundColor: "rgba(13, 20, 36, 0.92)",
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.15)",
-    padding: 5,
+    padding: 6,
     width: "100%",
-    maxWidth: 420,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 8,
+    maxWidth: 440,
   },
   tab: {
     flex: 1,
@@ -286,26 +316,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 8,
-    paddingHorizontal: 6,
+    paddingHorizontal: 8,
     borderRadius: 18,
+    borderWidth: 1,
     gap: 6,
     minHeight: 44,
   },
   activeTab: {
-    backgroundColor: "rgba(56, 189, 248, 0.18)",
     borderWidth: 1,
-    borderColor: "rgba(56, 189, 248, 0.4)",
   },
   tabIcon: {
     fontSize: 15,
   },
   tabLabel: {
     fontSize: 11,
-    color: "#94a3b8",
     fontWeight: "600",
   },
   activeTabLabel: {
-    color: "#38bdf8",
     fontWeight: "800",
   },
 });

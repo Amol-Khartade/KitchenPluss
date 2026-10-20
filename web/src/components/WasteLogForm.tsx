@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Recipe, PrepLog } from '../types/index.js';
-import { ClipboardList, CheckCircle2, History, AlertCircle } from 'lucide-react';
+import { ClipboardList, CheckCircle2, History } from 'lucide-react';
 
 interface WasteLogFormProps {
   recipes: Recipe[];
@@ -51,42 +51,42 @@ export const WasteLogForm: React.FC<WasteLogFormProps> = ({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Waste Submission Form */}
-      <div className="lg:col-span-1 glass-panel rounded-2xl p-6 border border-white/10 shadow-glass">
+      <div className="lg:col-span-1 bg-neu-surface rounded-2xl p-6 border border-neu-border shadow-neu-raised">
         <div className="flex items-center space-x-2.5 mb-2">
-          <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-400/40 flex items-center justify-center text-amber-400 shadow-glow-amber">
+          <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-400/40 flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-sm">
             <ClipboardList className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-white tracking-tight drop-shadow-sm">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
               Log End-of-Day Scrap
             </h3>
-            <p className="text-xs text-slate-400">Shift batch prep and trim yields</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Shift batch prep and trim yields</p>
           </div>
         </div>
-        <p className="text-xs text-slate-300/80 mb-5 leading-relaxed">
+        <p className="text-xs text-slate-600 dark:text-slate-300/80 mb-5 leading-relaxed">
           Record batch prep yields and discarded leftovers to feed the AI demand model.
         </p>
 
         {feedback && (
-          <div className="mb-4 p-3.5 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs flex items-center space-x-2 shadow-sm">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+          <div className="mb-4 p-3.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-800 dark:text-emerald-300 text-xs flex items-center space-x-2 shadow-sm">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
             <span>{feedback}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
               Menu Item / Recipe *
             </label>
             <select
               value={recipeId}
               onChange={(e) => setRecipeId(e.target.value)}
               required
-              className="w-full glass-input rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none"
+              className="w-full bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none cursor-pointer"
             >
               {recipes.map((r) => (
-                <option key={r.id} value={r.id} className="bg-slate-900 text-white">
+                <option key={r.id} value={r.id} className="bg-neu-surface text-slate-900 dark:text-white">
                   {r.menu_item_name} ({r.station})
                 </option>
               ))}
@@ -94,16 +94,16 @@ export const WasteLogForm: React.FC<WasteLogFormProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
               Day of Week
             </label>
             <select
               value={dayOfWeek}
               onChange={(e) => setDayOfWeek(e.target.value)}
-              className="w-full glass-input rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none"
+              className="w-full bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none cursor-pointer"
             >
               {DAYS_OF_WEEK.map((d) => (
-                <option key={d} value={d} className="bg-slate-900 text-white">
+                <option key={d} value={d} className="bg-neu-surface text-slate-900 dark:text-white">
                   {d}
                 </option>
               ))}
@@ -112,7 +112,7 @@ export const WasteLogForm: React.FC<WasteLogFormProps> = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                 Prepped (Portions)
               </label>
               <input
@@ -120,12 +120,12 @@ export const WasteLogForm: React.FC<WasteLogFormProps> = ({
                 min="0"
                 value={preppedQty}
                 onChange={(e) => setPreppedQty(parseInt(e.target.value) || 0)}
-                className="w-full glass-input rounded-xl px-3.5 py-2.5 text-sm text-white font-mono focus:outline-none"
+                className="w-full bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white font-mono focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-rose-300 mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-300 mb-1.5">
                 Waste / Scrap
               </label>
               <input
@@ -134,13 +134,13 @@ export const WasteLogForm: React.FC<WasteLogFormProps> = ({
                 step="any"
                 value={wasteQty}
                 onChange={(e) => setWasteQty(parseFloat(e.target.value) || 0)}
-                className="w-full glass-input border-rose-500/40 rounded-xl px-3.5 py-2.5 text-sm text-rose-300 font-mono focus:outline-none"
+                className="w-full bg-neu-sunken border border-rose-500/40 shadow-neu-inset-sm rounded-xl px-3.5 py-2.5 text-sm text-rose-600 dark:text-rose-300 font-mono focus:outline-none"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
               Waste Rationale / Scrap Notes
             </label>
             <textarea
@@ -148,14 +148,14 @@ export const WasteLogForm: React.FC<WasteLogFormProps> = ({
               placeholder="e.g. End of night buffer discard, burnt on sauté, trim loss"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full glass-input rounded-xl px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:outline-none resize-none"
+              className="w-full bg-neu-sunken border border-neu-borderSubtle shadow-neu-inset-sm rounded-xl px-3.5 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none resize-none"
             />
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting || !recipeId}
-            className="w-full min-h-[44px] py-2.5 px-4 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-xl shadow-glow-amber border border-amber-400/40 transition-all duration-200 active:scale-[0.98] disabled:opacity-50"
+            className="w-full min-h-[44px] py-2.5 px-4 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-xl shadow-glow-amber border border-amber-400/40 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 cursor-pointer"
           >
             {isSubmitting ? 'Recording Log...' : 'Submit Scrap Log'}
           </button>
@@ -163,22 +163,22 @@ export const WasteLogForm: React.FC<WasteLogFormProps> = ({
       </div>
 
       {/* Historical Prep & Waste Audit Trail */}
-      <div className="lg:col-span-2 glass-panel border border-white/10 rounded-2xl overflow-hidden flex flex-col shadow-glass">
-        <div className="p-4 sm:px-6 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-900/40">
+      <div className="lg:col-span-2 bg-neu-surface border border-neu-border rounded-2xl overflow-hidden flex flex-col shadow-neu-raised">
+        <div className="p-4 sm:px-6 border-b border-neu-borderSubtle flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-neu-card/50">
           <div className="flex items-center space-x-2">
-            <History className="w-4 h-4 text-sky-400" />
-            <h3 className="text-base font-bold text-white tracking-tight">
+            <History className="w-4 h-4 text-sky-500" />
+            <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
               Recent Kitchen Prep & Waste Logs (PostgreSQL `prep_logs`)
             </h3>
           </div>
-          <span className="text-xs font-mono text-slate-400 px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 self-start sm:self-auto">
+          <span className="text-xs font-mono text-slate-500 dark:text-slate-400 px-2.5 py-0.5 rounded-full bg-neu-sunken border border-neu-borderSubtle self-start sm:self-auto shadow-neu-inset-sm">
             {prepLogs.length} Entries Recorded
           </span>
         </div>
 
         <div className="flex-1 overflow-y-auto max-h-[500px]">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-950/70 text-slate-400 uppercase tracking-wider font-semibold border-b border-white/10 sticky top-0 backdrop-blur-md">
+            <thead className="bg-neu-card text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold border-b border-neu-borderSubtle sticky top-0 backdrop-blur-md">
               <tr>
                 <th className="py-3 px-4">Menu Item</th>
                 <th className="py-3 px-4">Day</th>
@@ -188,10 +188,10 @@ export const WasteLogForm: React.FC<WasteLogFormProps> = ({
                 <th className="py-3 px-4">Notes</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-neu-borderSubtle">
               {prepLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-500">
+                  <td colSpan={6} className="py-8 text-center text-slate-400 dark:text-slate-500">
                     No prep logs found in the database.
                   </td>
                 </tr>
@@ -202,23 +202,23 @@ export const WasteLogForm: React.FC<WasteLogFormProps> = ({
                   const wastePct = prepped > 0 ? ((waste / prepped) * 100).toFixed(1) : '0.0';
 
                   return (
-                    <tr key={log.id} className="hover:bg-white/[0.02] transition-colors">
-                      <td className="py-3.5 px-4 font-bold text-white">
+                    <tr key={log.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
+                      <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white">
                         {log.recipe_name}
                       </td>
-                      <td className="py-3.5 px-4 text-slate-300 font-medium">
+                      <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300 font-medium">
                         {log.day_of_week}
                       </td>
-                      <td className="py-3.5 px-4 font-mono font-medium text-slate-200">
+                      <td className="py-3.5 px-4 font-mono font-medium text-slate-800 dark:text-slate-200">
                         {prepped}
                       </td>
-                      <td className="py-3.5 px-4 font-mono font-medium text-rose-400">
+                      <td className="py-3.5 px-4 font-mono font-medium text-rose-600 dark:text-rose-400">
                         {waste}
                       </td>
-                      <td className="py-3.5 px-4 font-mono font-bold text-amber-300">
+                      <td className="py-3.5 px-4 font-mono font-bold text-amber-600 dark:text-amber-400">
                         {wastePct}%
                       </td>
-                      <td className="py-3.5 px-4 text-slate-400 max-w-xs truncate">
+                      <td className="py-3.5 px-4 text-slate-500 dark:text-slate-400 max-w-xs truncate">
                         {log.notes || '—'}
                       </td>
                     </tr>
@@ -232,4 +232,3 @@ export const WasteLogForm: React.FC<WasteLogFormProps> = ({
     </div>
   );
 };
-
