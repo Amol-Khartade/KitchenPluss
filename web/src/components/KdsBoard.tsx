@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { Ticket, TicketStatus } from '../types/index.js';
 import { TicketCard } from './TicketCard.js';
 import { Layers, Flame, CheckCircle, Inbox, LayoutGrid } from 'lucide-react';
+import { Button } from './ui/Button.js';
+import { Badge } from './ui/Badge.js';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface KdsBoardProps {
   tickets: Ticket[];
@@ -31,188 +34,229 @@ export const KdsBoard: React.FC<KdsBoardProps> = ({
     <div className="space-y-4">
       {/* Mobile/Tablet Column Selector Tabs (hidden on large desktop) */}
       <div className="flex md:hidden items-center justify-between p-1.5 rounded-2xl glass-panel border border-white/10 gap-1 overflow-x-auto">
-        <button
+        <Button
+          variant={mobileColumnFilter === 'ALL' ? 'default' : 'ghost'}
+          size="sm"
           onClick={() => setMobileColumnFilter('ALL')}
-          className={`flex-1 min-w-[70px] py-1.5 px-2.5 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all ${
-            mobileColumnFilter === 'ALL'
-              ? 'bg-slate-700/80 text-white border border-white/20 shadow-sm'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
+          className="flex-1 min-w-[70px]"
         >
-          <LayoutGrid className="w-3.5 h-3.5" />
+          <LayoutGrid className="w-3.5 h-3.5 mr-1.5" />
           <span>All</span>
-          <span className="text-[10px] opacity-75">({tickets.length})</span>
-        </button>
+          <span className="ml-1 text-[10px] opacity-75">({tickets.length})</span>
+        </Button>
 
-        <button
+        <Button
+          variant={mobileColumnFilter === 'QUEUE' ? 'default' : 'ghost'}
+          size="sm"
           onClick={() => setMobileColumnFilter('QUEUE')}
-          className={`flex-1 min-w-[85px] py-1.5 px-2.5 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all ${
-            mobileColumnFilter === 'QUEUE'
-              ? 'bg-sky-500/25 text-sky-300 border border-sky-400/40 shadow-glow-sky'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
+          className={`flex-1 min-w-[85px] ${mobileColumnFilter === 'QUEUE' ? 'bg-sky-500/25 text-sky-300 border-sky-400/40 hover:bg-sky-500/30' : ''}`}
         >
-          <Layers className="w-3.5 h-3.5 text-sky-400" />
+          <Layers className="w-3.5 h-3.5 mr-1.5 text-sky-400" />
           <span>Queue</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-sky-950 text-sky-300 border border-sky-800/80">
+          <Badge variant="default" className="ml-1.5 px-1.5 py-0 text-[10px]">
             {queueTickets.length}
-          </span>
-        </button>
+          </Badge>
+        </Button>
 
-        <button
+        <Button
+          variant={mobileColumnFilter === 'FIRING' ? 'warning' : 'ghost'}
+          size="sm"
           onClick={() => setMobileColumnFilter('FIRING')}
-          className={`flex-1 min-w-[85px] py-1.5 px-2.5 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all ${
-            mobileColumnFilter === 'FIRING'
-              ? 'bg-amber-500/25 text-amber-300 border border-amber-400/40 shadow-glow-amber'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
+          className="flex-1 min-w-[85px]"
         >
-          <Flame className="w-3.5 h-3.5 text-amber-400" />
+          <Flame className="w-3.5 h-3.5 mr-1.5 text-amber-400" />
           <span>Firing</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800/80">
+          <Badge variant="warning" className="ml-1.5 px-1.5 py-0 text-[10px]">
             {firingTickets.length}
-          </span>
-        </button>
+          </Badge>
+        </Button>
 
-        <button
+        <Button
+          variant={mobileColumnFilter === 'COMPLETED' ? 'success' : 'ghost'}
+          size="sm"
           onClick={() => setMobileColumnFilter('COMPLETED')}
-          className={`flex-1 min-w-[85px] py-1.5 px-2.5 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all ${
-            mobileColumnFilter === 'COMPLETED'
-              ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-400/40 shadow-glow-emerald'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
+          className="flex-1 min-w-[85px]"
         >
-          <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+          <CheckCircle className="w-3.5 h-3.5 mr-1.5 text-emerald-400" />
           <span>Done</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800/80">
+          <Badge variant="success" className="ml-1.5 px-1.5 py-0 text-[10px]">
             {completedTickets.length}
-          </span>
-        </button>
+          </Badge>
+        </Button>
       </div>
 
       {/* Main KDS Columns Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:h-[calc(100vh-14rem)] min-h-[500px]">
-        {/* Column 1: QUEUE */}
-        {showQueue && (
-          <div className="flex flex-col glass-panel rounded-2xl border border-sky-500/20 overflow-hidden shadow-glass transition-all">
-            <div className="p-4 border-b border-sky-500/20 flex items-center justify-between bg-sky-950/30 backdrop-blur-xl">
-              <div className="flex items-center space-x-2.5">
-                <div className="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-400/30 flex items-center justify-center text-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.2)]">
-                  <Layers className="w-4 h-4" />
+      <AnimatePresence mode="popLayout">
+        <motion.div layout className="grid grid-cols-1 md:grid-cols-3 gap-5 md:h-[calc(100vh-14rem)] min-h-[500px]">
+          {/* Column 1: QUEUE */}
+          {showQueue && (
+            <motion.div
+              layout
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="flex flex-col glass-panel rounded-2xl border border-sky-500/20 overflow-hidden shadow-glass transition-all h-full"
+            >
+              <div className="p-4 border-b border-sky-500/20 flex items-center justify-between bg-sky-950/30 backdrop-blur-xl">
+                <div className="flex items-center space-x-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-400/30 flex items-center justify-center text-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.2)]">
+                    <Layers className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-xs uppercase tracking-wider text-sky-200">
+                      Queue / Pending
+                    </h3>
+                    <span className="text-[10px] text-slate-400 font-mono">Incoming Orders</span>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-xs uppercase tracking-wider text-sky-200">
-                    Queue / Pending
-                  </h3>
-                  <span className="text-[10px] text-slate-400 font-mono">Incoming Orders</span>
-                </div>
+                <Badge variant="default" className="text-xs font-mono shadow-sm">
+                  {queueTickets.length}
+                </Badge>
               </div>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold font-mono bg-sky-950/80 text-sky-300 border border-sky-500/40 shadow-sm">
-                {queueTickets.length}
-              </span>
-            </div>
 
-            <div className="flex-1 p-3 overflow-y-auto space-y-3">
-              {queueTickets.length === 0 ? (
-                <div className="h-44 flex flex-col items-center justify-center text-slate-500 space-y-2">
-                  <Inbox className="w-8 h-8 opacity-30 text-sky-400" />
-                  <p className="text-xs text-slate-400">No pending tickets in queue</p>
-                </div>
-              ) : (
-                queueTickets.map((t) => (
-                  <TicketCard
-                    key={t.id}
-                    ticket={t}
-                    onUpdateStatus={onUpdateStatus}
-                    isUpdating={updatingTicketId === t.id}
-                  />
-                ))
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Column 2: FIRING */}
-        {showFiring && (
-          <div className="flex flex-col glass-panel rounded-2xl border border-amber-500/30 overflow-hidden shadow-glass ring-1 ring-amber-500/25 transition-all">
-            <div className="p-4 border-b border-amber-500/30 flex items-center justify-between bg-amber-950/30 backdrop-blur-xl">
-              <div className="flex items-center space-x-2.5">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-400/40 flex items-center justify-center text-amber-400 shadow-glow-amber">
-                  <Flame className="w-4 h-4 fill-amber-400 animate-pulse" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-xs uppercase tracking-wider text-amber-300">
-                    Firing / Cooking
-                  </h3>
-                  <span className="text-[10px] text-amber-200/70 font-mono">Active on Line</span>
-                </div>
+              <div className="flex-1 p-3 overflow-y-auto space-y-3">
+                {queueTickets.length === 0 ? (
+                  <div className="h-44 flex flex-col items-center justify-center text-slate-500 space-y-2">
+                    <Inbox className="w-8 h-8 opacity-30 text-sky-400" />
+                    <p className="text-xs text-slate-400">No pending tickets in queue</p>
+                  </div>
+                ) : (
+                  <AnimatePresence>
+                    {queueTickets.map((t) => (
+                      <motion.div
+                        key={t.id}
+                        layout
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                      >
+                        <TicketCard
+                          ticket={t}
+                          onUpdateStatus={onUpdateStatus}
+                          isUpdating={updatingTicketId === t.id}
+                        />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                )}
               </div>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold font-mono bg-amber-950/80 text-amber-300 border border-amber-500/50 shadow-sm animate-pulse">
-                {firingTickets.length}
-              </span>
-            </div>
+            </motion.div>
+          )}
 
-            <div className="flex-1 p-3 overflow-y-auto space-y-3">
-              {firingTickets.length === 0 ? (
-                <div className="h-44 flex flex-col items-center justify-center text-slate-500 space-y-2">
-                  <Flame className="w-8 h-8 opacity-30 text-amber-500" />
-                  <p className="text-xs text-slate-400">No tickets actively firing</p>
+          {/* Column 2: FIRING */}
+          {showFiring && (
+            <motion.div
+              layout
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="flex flex-col glass-panel rounded-2xl border border-amber-500/30 overflow-hidden shadow-glass ring-1 ring-amber-500/25 transition-all h-full"
+            >
+              <div className="p-4 border-b border-amber-500/30 flex items-center justify-between bg-amber-950/30 backdrop-blur-xl">
+                <div className="flex items-center space-x-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-400/40 flex items-center justify-center text-amber-400 shadow-glow-amber">
+                    <Flame className="w-4 h-4 fill-amber-400 animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-xs uppercase tracking-wider text-amber-300">
+                      Firing / Cooking
+                    </h3>
+                    <span className="text-[10px] text-amber-200/70 font-mono">Active on Line</span>
+                  </div>
                 </div>
-              ) : (
-                firingTickets.map((t) => (
-                  <TicketCard
-                    key={t.id}
-                    ticket={t}
-                    onUpdateStatus={onUpdateStatus}
-                    isUpdating={updatingTicketId === t.id}
-                  />
-                ))
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Column 3: COMPLETED / EXPEDITE */}
-        {showCompleted && (
-          <div className="flex flex-col glass-panel rounded-2xl border border-emerald-500/20 overflow-hidden shadow-glass transition-all">
-            <div className="p-4 border-b border-emerald-500/20 flex items-center justify-between bg-emerald-950/20 backdrop-blur-xl">
-              <div className="flex items-center space-x-2.5">
-                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-400/30 flex items-center justify-center text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.2)]">
-                  <CheckCircle className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-xs uppercase tracking-wider text-emerald-300">
-                    Expedite / Done
-                  </h3>
-                  <span className="text-[10px] text-slate-400 font-mono">Ready for Service</span>
-                </div>
+                <Badge variant="warning" className="text-xs font-mono shadow-sm animate-pulse">
+                  {firingTickets.length}
+                </Badge>
               </div>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold font-mono bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 shadow-sm">
-                {completedTickets.length}
-              </span>
-            </div>
 
-            <div className="flex-1 p-3 overflow-y-auto space-y-3">
-              {completedTickets.length === 0 ? (
-                <div className="h-44 flex flex-col items-center justify-center text-slate-500 space-y-2">
-                  <CheckCircle className="w-8 h-8 opacity-30 text-emerald-500" />
-                  <p className="text-xs text-slate-400">No fulfilled tickets yet today</p>
+              <div className="flex-1 p-3 overflow-y-auto space-y-3">
+                {firingTickets.length === 0 ? (
+                  <div className="h-44 flex flex-col items-center justify-center text-slate-500 space-y-2">
+                    <Flame className="w-8 h-8 opacity-30 text-amber-500" />
+                    <p className="text-xs text-slate-400">No tickets actively firing</p>
+                  </div>
+                ) : (
+                  <AnimatePresence>
+                    {firingTickets.map((t) => (
+                      <motion.div
+                        key={t.id}
+                        layout
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                      >
+                        <TicketCard
+                          ticket={t}
+                          onUpdateStatus={onUpdateStatus}
+                          isUpdating={updatingTicketId === t.id}
+                        />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Column 3: COMPLETED / EXPEDITE */}
+          {showCompleted && (
+            <motion.div
+              layout
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="flex flex-col glass-panel rounded-2xl border border-emerald-500/20 overflow-hidden shadow-glass transition-all h-full"
+            >
+              <div className="p-4 border-b border-emerald-500/20 flex items-center justify-between bg-emerald-950/20 backdrop-blur-xl">
+                <div className="flex items-center space-x-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-400/30 flex items-center justify-center text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.2)]">
+                    <CheckCircle className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-xs uppercase tracking-wider text-emerald-300">
+                      Expedite / Done
+                    </h3>
+                    <span className="text-[10px] text-slate-400 font-mono">Ready for Service</span>
+                  </div>
                 </div>
-              ) : (
-                completedTickets.map((t) => (
-                  <TicketCard
-                    key={t.id}
-                    ticket={t}
-                    onUpdateStatus={onUpdateStatus}
-                    isUpdating={updatingTicketId === t.id}
-                  />
-                ))
-              )}
-            </div>
-          </div>
-        )}
-      </div>
+                <Badge variant="success" className="text-xs font-mono shadow-sm">
+                  {completedTickets.length}
+                </Badge>
+              </div>
+
+              <div className="flex-1 p-3 overflow-y-auto space-y-3">
+                {completedTickets.length === 0 ? (
+                  <div className="h-44 flex flex-col items-center justify-center text-slate-500 space-y-2">
+                    <CheckCircle className="w-8 h-8 opacity-30 text-emerald-500" />
+                    <p className="text-xs text-slate-400">No fulfilled tickets yet today</p>
+                  </div>
+                ) : (
+                  <AnimatePresence>
+                    {completedTickets.map((t) => (
+                      <motion.div
+                        key={t.id}
+                        layout
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                      >
+                        <TicketCard
+                          ticket={t}
+                          onUpdateStatus={onUpdateStatus}
+                          isUpdating={updatingTicketId === t.id}
+                        />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 };
-

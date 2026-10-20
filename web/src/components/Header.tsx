@@ -22,8 +22,14 @@ import {
   CheckCircle2,
   AlertTriangle,
   UtensilsCrossed,
+  Menu,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.js';
+import { Button } from './ui/Button.js';
+import { Badge } from './ui/Badge.js';
+import * as Popover from '@radix-ui/react-popover';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export type AppTab = 'kds' | 'inventory' | 'menu' | 'ai-prep' | 'waste-log' | 'team';
 
@@ -47,28 +53,9 @@ export const Header: React.FC<HeaderProps> = ({
   ticketCounts,
 }) => {
   const [time, setTime] = useState<string>('');
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [pulseLiveUpdate, setPulseLiveUpdate] = useState(false);
 
-  const userMenuRef = useRef<HTMLDivElement>(null);
-  const alertsMenuRef = useRef<HTMLDivElement>(null);
-
   const { user, organization, isAuthenticated, hasAdminAccess, isOwner, isAdmin, logout, openAuthModal } = useAuth();
-
-  // Close dropdowns on outside click
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
-        setIsUserMenuOpen(false);
-      }
-      if (alertsMenuRef.current && !alertsMenuRef.current.contains(e.target as Node)) {
-        setIsAlertsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   // Live real-time clock update
   useEffect(() => {
@@ -113,18 +100,21 @@ export const Header: React.FC<HeaderProps> = ({
                 {/* Brand Title & Organization.name stacked below */}
                 <div className="flex flex-col justify-center min-w-0">
                   <div className="flex items-center space-x-1.5">
-                    <span className="font-black text-base sm:text-lg tracking-tight text-white drop-shadow-sm leading-none whitespace-nowrap">
+                    <span className="font-black text-base sm:text-lg tracking-tight text-white drop-shadow-sm leading-none whitespace-nowrap hidden sm:inline">
                       Kitchen<span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-indigo-300 to-amber-300">Pulse</span>
+                    </span>
+                    <span className="font-black text-base tracking-tight text-white drop-shadow-sm leading-none whitespace-nowrap sm:hidden">
+                      K<span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-indigo-300 to-amber-300">P</span>
                     </span>
                   </div>
                   {/* Organization Name directly below KitchenPulse */}
                   {organization ? (
-                    <div className="flex items-center space-x-1 text-[11px] font-bold text-sky-400/95 leading-tight mt-1 max-w-[120px] sm:max-w-[170px] md:max-w-[210px] group cursor-default">
+                    <div className="hidden sm:flex items-center space-x-1 text-[11px] font-bold text-sky-400/95 leading-tight mt-1 max-w-[120px] sm:max-w-[170px] md:max-w-[210px] group cursor-default">
                       <Building2 className="w-3 h-3 text-sky-400 flex-shrink-0" />
                       <span className="truncate">{organization.name}</span>
                     </div>
                   ) : (
-                    <span className="text-[10px] text-slate-500 font-medium leading-tight mt-0.5 whitespace-nowrap">Kitchen Operations</span>
+                    <span className="hidden sm:inline text-[10px] text-slate-500 font-medium leading-tight mt-0.5 whitespace-nowrap">Kitchen Operations</span>
                   )}
                 </div>
               </div>
@@ -146,23 +136,22 @@ export const Header: React.FC<HeaderProps> = ({
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400 shadow-[0_0_6px_#34d399]" />
                     </span>
-                    <Wifi className="w-3.5 h-3.5 flex-shrink-0 text-emerald-400" />
-                    <span className="font-extrabold text-[11px] tracking-wider hidden sm:inline">LIVE WS</span>
-                    <span className="font-extrabold text-[10px] tracking-wider sm:hidden">LIVE</span>
-                    <span className="text-emerald-500/40 font-light">|</span>
+                    <Wifi className="w-3.5 h-3.5 flex-shrink-0 text-emerald-400 hidden sm:block" />
+                    <span className="font-extrabold text-[11px] tracking-wider hidden lg:inline">LIVE WS</span>
+                    <span className="font-extrabold text-[10px] tracking-wider lg:hidden sm:hidden hidden">LIVE</span>
+                    <span className="text-emerald-500/40 font-light hidden sm:inline">|</span>
                     <div className="flex items-center space-x-1 font-mono text-[11px] text-emerald-200">
-                      <Clock className="w-3 h-3 text-emerald-400/80 flex-shrink-0" />
+                      <Clock className="w-3 h-3 text-emerald-400/80 flex-shrink-0 hidden sm:block" />
                       <span className="tabular-numbers font-semibold">{time || '--:--:--'}</span>
                     </div>
                   </>
                 ) : (
                   <>
-                    <WifiOff className="w-3.5 h-3.5 flex-shrink-0 text-rose-400" />
-                    <span className="font-extrabold text-[11px] tracking-wider hidden sm:inline">OFFLINE</span>
-                    <span className="font-extrabold text-[10px] tracking-wider sm:hidden">OFF</span>
-                    <span className="text-rose-500/40 font-light">|</span>
+                    <WifiOff className="w-3.5 h-3.5 flex-shrink-0 text-rose-400 hidden sm:block" />
+                    <span className="font-extrabold text-[11px] tracking-wider hidden lg:inline">OFFLINE</span>
+                    <span className="text-rose-500/40 font-light hidden sm:inline">|</span>
                     <div className="flex items-center space-x-1 font-mono text-[11px] text-rose-300">
-                      <Clock className="w-3 h-3 text-rose-400/80 flex-shrink-0" />
+                      <Clock className="w-3 h-3 text-rose-400/80 flex-shrink-0 hidden sm:block" />
                       <span className="tabular-numbers font-semibold">{time || '--:--:--'}</span>
                     </div>
                   </>
@@ -178,9 +167,9 @@ export const Header: React.FC<HeaderProps> = ({
                     {totalActiveTickets}
                   </span>
                   {ticketCounts.firing > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                    <Badge variant="warning" className="px-1.5 py-0 rounded-full text-[10px]">
                       {ticketCounts.firing} 🔥 firing
-                    </span>
+                    </Badge>
                   )}
                 </div>
               )}
@@ -200,15 +189,16 @@ export const Header: React.FC<HeaderProps> = ({
                 <Flame className={`w-4 h-4 transition-transform ${activeTab === 'kds' ? 'scale-110 text-amber-300' : 'group-hover:scale-110'}`} />
                 <span>KDS</span>
                 {totalActiveTickets > 0 && (
-                  <span
-                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold transition-all duration-200 ${
+                  <Badge
+                    variant={activeTab === 'kds' ? 'default' : 'outline'}
+                    className={`px-1.5 py-0 text-[10px] border-none ${
                       activeTab === 'kds'
                         ? 'bg-sky-800 text-sky-100'
-                        : 'bg-slate-800 text-sky-300 border border-sky-500/30'
+                        : 'bg-slate-800 text-sky-300'
                     }`}
                   >
                     {totalActiveTickets}
-                  </span>
+                  </Badge>
                 )}
               </button>
 
@@ -224,9 +214,9 @@ export const Header: React.FC<HeaderProps> = ({
                 <Layers className={`w-4 h-4 transition-transform ${activeTab === 'inventory' ? 'scale-110' : 'group-hover:scale-110'}`} />
                 <span>Stock</span>
                 {ticketCounts && ticketCounts.lowStock > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-amber-950 text-amber-300 border border-amber-500/40 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.3)]">
+                  <Badge variant="warning" className="px-1.5 py-0 text-[10px] animate-pulse">
                     {ticketCounts.lowStock}
-                  </span>
+                  </Badge>
                 )}
               </button>
 
@@ -292,40 +282,44 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Right Block: Live Alerts Bell + New Ticket + User Profile */}
             <div className="flex items-center space-x-2 sm:space-x-2.5">
               
-              {/* Interactive Live Alerts Center */}
-              <div className="relative" ref={alertsMenuRef}>
-                <button
-                  type="button"
-                  onClick={() => setIsAlertsOpen(!isAlertsOpen)}
-                  className={`relative p-2 rounded-xl border transition-all duration-200 active:scale-95 ${
-                    alerts.length > 0
-                      ? 'bg-amber-950/40 text-amber-300 border-amber-500/40 shadow-glow-amber hover:bg-amber-900/50'
-                      : 'bg-slate-900/60 text-slate-400 border-white/10 hover:text-slate-200 hover:bg-white/5'
-                  }`}
-                  title={`${alerts.length} live kitchen alerts`}
-                >
-                  {alerts.length > 0 ? (
-                    <BellRing className="w-4 h-4 text-amber-400 animate-bounce" />
-                  ) : (
-                    <Bell className="w-4 h-4" />
-                  )}
-                  {alerts.length > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white shadow-[0_0_8px_#f43f5e]">
-                      {alerts.length}
-                    </span>
-                  )}
-                </button>
+              {/* Interactive Live Alerts Center - Using Radix Popover */}
+              <Popover.Root>
+                <Popover.Trigger asChild>
+                  <button
+                    type="button"
+                    className={`relative p-2 rounded-xl border transition-all duration-200 active:scale-95 ${
+                      alerts.length > 0
+                        ? 'bg-amber-950/40 text-amber-300 border-amber-500/40 shadow-glow-amber hover:bg-amber-900/50'
+                        : 'bg-slate-900/60 text-slate-400 border-white/10 hover:text-slate-200 hover:bg-white/5'
+                    }`}
+                    title={`${alerts.length} live kitchen alerts`}
+                  >
+                    {alerts.length > 0 ? (
+                      <BellRing className="w-4 h-4 text-amber-400 animate-bounce" />
+                    ) : (
+                      <Bell className="w-4 h-4" />
+                    )}
+                    {alerts.length > 0 && (
+                      <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white shadow-[0_0_8px_#f43f5e]">
+                        {alerts.length}
+                      </span>
+                    )}
+                  </button>
+                </Popover.Trigger>
 
-                {/* Alerts Popover Menu */}
-                {isAlertsOpen && (
-                  <div className="absolute right-0 mt-2.5 w-80 sm:w-96 rounded-2xl bg-slate-950/95 border border-white/15 shadow-glass-lg p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150 backdrop-blur-2xl">
+                <Popover.Portal>
+                  <Popover.Content
+                    className="z-50 w-[90vw] sm:w-96 rounded-2xl bg-slate-950/95 border border-white/15 shadow-glass-lg p-3 backdrop-blur-2xl outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2"
+                    sideOffset={10}
+                    align="end"
+                  >
                     <div className="flex items-center justify-between pb-2 border-b border-white/10 mb-2">
                       <div className="flex items-center space-x-1.5">
                         <Bell className="w-3.5 h-3.5 text-amber-400" />
                         <span className="text-xs font-bold text-white">Live System Alerts</span>
-                        <span className="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-slate-800 text-slate-300">
+                        <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
                           {alerts.length}
-                        </span>
+                        </Badge>
                       </div>
                       {alerts.length > 0 && (
                         <span className="text-[10px] text-slate-400">Click × to dismiss</span>
@@ -340,102 +334,117 @@ export const Header: React.FC<HeaderProps> = ({
                           <div className="text-[10px] text-slate-500">No active stock or operational alerts</div>
                         </div>
                       ) : (
-                        alerts.map((alert) => (
-                          <div
-                            key={alert.id}
-                            className="p-2.5 rounded-xl bg-slate-900/80 border border-white/10 hover:border-white/20 flex items-start justify-between space-x-2 transition-colors"
-                          >
-                            <div className="flex items-start space-x-2 min-w-0">
-                              <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-                              <div className="min-w-0">
-                                <div className="flex items-center space-x-1.5 mb-0.5">
-                                  <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                                    {alert.type}
-                                  </span>
-                                  <span className="text-[10px] text-slate-500 font-mono">
-                                    {new Date(alert.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                  </span>
-                                </div>
-                                <p className="text-xs text-slate-200 font-medium break-words leading-tight">{alert.message}</p>
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => onDismissAlert(alert.id)}
-                              className="text-slate-500 hover:text-slate-200 p-1 rounded-lg hover:bg-white/10 transition-colors"
-                              title="Dismiss"
+                        <AnimatePresence>
+                          {alerts.map((alert) => (
+                            <motion.div
+                              key={alert.id}
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, x: -20 }}
+                              className="p-2.5 rounded-xl bg-slate-900/80 border border-white/10 hover:border-white/20 flex items-start justify-between space-x-2 transition-colors"
                             >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        ))
+                              <div className="flex items-start space-x-2 min-w-0">
+                                <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                                <div className="min-w-0">
+                                  <div className="flex items-center space-x-1.5 mb-0.5">
+                                    <Badge variant="warning" className="text-[9px] uppercase tracking-wider px-1.5 py-0">
+                                      {alert.type}
+                                    </Badge>
+                                    <span className="text-[10px] text-slate-500 font-mono">
+                                      {new Date(alert.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-slate-200 font-medium break-words leading-tight">{alert.message}</p>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => onDismissAlert(alert.id)}
+                                className="text-slate-500 hover:text-slate-200 p-1 rounded-lg hover:bg-white/10 transition-colors"
+                                title="Dismiss"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </motion.div>
+                          ))}
+                        </AnimatePresence>
                       )}
                     </div>
-                  </div>
-                )}
-              </div>
+                  </Popover.Content>
+                </Popover.Portal>
+              </Popover.Root>
 
               {/* Action Button: New Ticket */}
-              <button
+              <Button
+                variant="default"
+                size="sm"
                 onClick={onOpenNewTicket}
-                className="group relative flex items-center space-x-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-gradient-to-r from-sky-500 via-indigo-500 to-sky-600 hover:from-sky-400 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-glow-sky border border-sky-300/30 transition-all duration-200 active:scale-95 hover:shadow-lg"
+                className="hidden sm:flex group px-3 py-1.5 sm:px-3.5 sm:py-2"
               >
-                <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-200" />
-                <span className="hidden sm:inline font-extrabold tracking-wide">New Ticket</span>
-              </button>
+                <Plus className="w-4 h-4 mr-1.5 group-hover:rotate-90 transition-transform duration-200" />
+                <span className="font-extrabold tracking-wide">New Ticket</span>
+              </Button>
+              {/* Mobile version of New Ticket Button */}
+              <Button
+                variant="default"
+                size="icon"
+                onClick={onOpenNewTicket}
+                className="sm:hidden group flex rounded-full"
+              >
+                <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-200" />
+              </Button>
 
-              {/* User Profile Dropdown */}
+              {/* User Profile Dropdown - Using Radix DropdownMenu */}
               {isAuthenticated && user ? (
-                <div className="relative" ref={userMenuRef}>
-                  <button
-                    type="button"
-                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center space-x-2 px-2 py-1.5 sm:px-2.5 rounded-xl bg-slate-900/60 hover:bg-slate-800/80 border border-white/10 hover:border-white/20 transition-all text-xs active:scale-95 shadow-glass"
-                  >
-                    {user.avatar_url ? (
-                      <img
-                        src={user.avatar_url}
-                        alt={user.name}
-                        className="w-6 h-6 rounded-lg object-cover ring-1 ring-sky-500/50"
-                      />
-                    ) : (
-                      <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center font-bold text-white text-[11px] shadow-sm">
-                        {user.name.charAt(0).toUpperCase()}
+                <DropdownMenu.Root>
+                  <DropdownMenu.Trigger asChild>
+                    <button
+                      type="button"
+                      className="flex items-center space-x-2 px-2 py-1.5 sm:px-2.5 rounded-xl bg-slate-900/60 hover:bg-slate-800/80 border border-white/10 hover:border-white/20 transition-all text-xs active:scale-95 shadow-glass"
+                    >
+                      {user.avatar_url ? (
+                        <img
+                          src={user.avatar_url}
+                          alt={user.name}
+                          className="w-6 h-6 rounded-lg object-cover ring-1 ring-sky-500/50"
+                        />
+                      ) : (
+                        <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center font-bold text-white text-[11px] shadow-sm">
+                          {user.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="hidden lg:flex flex-col text-left">
+                        <span className="font-bold text-white truncate max-w-[110px] leading-tight text-[11px]">
+                          {user.name}
+                        </span>
+                        <span className="text-[9px] text-slate-400 font-mono flex items-center gap-1 leading-none mt-0.5">
+                          {isOwner ? (
+                            <Crown className="w-2.5 h-2.5 text-amber-400 inline" />
+                          ) : isAdmin ? (
+                            <Shield className="w-2.5 h-2.5 text-sky-400 inline" />
+                          ) : null}
+                          {user.role}
+                        </span>
                       </div>
-                    )}
-                    <div className="hidden md:flex flex-col text-left">
-                      <span className="font-bold text-white truncate max-w-[110px] leading-tight text-[11px]">
-                        {user.name}
-                      </span>
-                      <span className="text-[9px] text-slate-400 font-mono flex items-center gap-1 leading-none mt-0.5">
-                        {isOwner ? (
-                          <Crown className="w-2.5 h-2.5 text-amber-400 inline" />
-                        ) : isAdmin ? (
-                          <Shield className="w-2.5 h-2.5 text-sky-400 inline" />
-                        ) : null}
-                        {user.role}
-                      </span>
-                    </div>
-                    <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180 text-white' : ''}`} />
-                  </button>
+                      <ChevronDown className="w-3.5 h-3.5 text-slate-400 transition-transform duration-200 group-data-[state=open]:rotate-180 group-data-[state=open]:text-white" />
+                    </button>
+                  </DropdownMenu.Trigger>
 
-                  {/* Profile Dropdown Menu */}
-                  {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-2.5 w-64 rounded-2xl bg-slate-950/95 border border-white/15 shadow-glass-lg p-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150 backdrop-blur-2xl">
+                  <DropdownMenu.Portal>
+                    <DropdownMenu.Content
+                      className="z-50 min-w-[16rem] rounded-2xl bg-slate-950/95 border border-white/15 shadow-glass-lg p-2.5 backdrop-blur-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2"
+                      sideOffset={10}
+                      align="end"
+                    >
                       <div className="p-2 rounded-xl bg-slate-900/60 border border-white/10 mb-2">
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-xs font-bold text-white truncate">{user.name}</span>
-                          <span
-                            className={`text-[9px] uppercase px-1.5 py-0.5 rounded-md font-mono font-bold ${
-                              isOwner
-                                ? 'bg-amber-950/70 text-amber-300 border border-amber-500/40 shadow-glow-amber'
-                                : isAdmin
-                                ? 'bg-sky-950/70 text-sky-300 border border-sky-500/40 shadow-glow-sky'
-                                : 'bg-slate-800 text-slate-300 border border-slate-700'
-                            }`}
+                          <Badge
+                            variant={isOwner ? "warning" : isAdmin ? "default" : "secondary"}
+                            className="text-[9px] uppercase px-1.5 py-0.5 rounded-md font-mono font-bold"
                           >
                             {user.role}
-                          </span>
+                          </Badge>
                         </div>
                         <div className="text-[10px] text-slate-400 truncate font-mono">{user.email}</div>
 
@@ -451,43 +460,73 @@ export const Header: React.FC<HeaderProps> = ({
                       </div>
 
                       {hasAdminAccess && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsUserMenuOpen(false);
-                            setActiveTab('team');
-                          }}
-                          className="w-full flex items-center space-x-2 px-3 py-2 text-xs text-slate-200 hover:text-white hover:bg-white/10 rounded-xl transition-colors font-medium mb-1"
-                        >
-                          <Users className="w-4 h-4 text-emerald-400" />
-                          <span>Manage Team & Roles</span>
-                        </button>
+                        <DropdownMenu.Item asChild>
+                          <button
+                            type="button"
+                            onClick={() => setActiveTab('team')}
+                            className="w-full flex items-center space-x-2 px-3 py-2 text-xs text-slate-200 hover:text-white hover:bg-white/10 rounded-xl transition-colors font-medium mb-1 outline-none cursor-pointer"
+                          >
+                            <Users className="w-4 h-4 text-emerald-400" />
+                            <span>Manage Team & Roles</span>
+                          </button>
+                        </DropdownMenu.Item>
                       )}
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsUserMenuOpen(false);
-                          logout();
-                        }}
-                        className="w-full flex items-center space-x-2 px-3 py-2 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 rounded-xl transition-colors font-medium"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span>Sign Out</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
+                      <DropdownMenu.Item asChild>
+                        <button
+                          type="button"
+                          onClick={() => logout()}
+                          className="w-full flex items-center space-x-2 px-3 py-2 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 rounded-xl transition-colors font-medium outline-none cursor-pointer"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span>Sign Out</span>
+                        </button>
+                      </DropdownMenu.Item>
+                    </DropdownMenu.Content>
+                  </DropdownMenu.Portal>
+                </DropdownMenu.Root>
               ) : (
-                <button
-                  type="button"
+                <Button
+                  variant="glass"
+                  size="sm"
                   onClick={() => openAuthModal('login')}
-                  className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-900/60 hover:bg-slate-800/80 text-slate-200 hover:text-white border border-white/10 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm"
+                  className="flex"
                 >
-                  <LogIn className="w-4 h-4 text-sky-400" />
-                  <span>Sign In</span>
-                </button>
+                  <LogIn className="w-4 h-4 text-sky-400 mr-1.5" />
+                  <span className="hidden sm:inline">Sign In</span>
+                </Button>
               )}
+
+              {/* Mobile Menu Dropdown (Hamburger) */}
+              <div className="md:hidden">
+                <DropdownMenu.Root>
+                  <DropdownMenu.Trigger asChild>
+                     <Button variant="glass" size="icon" className="rounded-xl">
+                       <Menu className="w-5 h-5 text-slate-300" />
+                     </Button>
+                  </DropdownMenu.Trigger>
+                  <DropdownMenu.Portal>
+                    <DropdownMenu.Content
+                      className="z-50 min-w-[12rem] rounded-2xl bg-slate-950/95 border border-white/15 shadow-glass-lg p-2 backdrop-blur-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2"
+                      sideOffset={10}
+                      align="end"
+                    >
+                      <DropdownMenu.Item asChild>
+                        <button
+                          onClick={() => setActiveTab('menu')}
+                          className={`w-full flex items-center space-x-2 px-3 py-2 text-xs rounded-xl transition-colors font-medium mb-1 outline-none cursor-pointer ${
+                            activeTab === 'menu' ? 'bg-pink-500/20 text-pink-300' : 'text-slate-200 hover:bg-white/10 hover:text-white'
+                          }`}
+                        >
+                          <UtensilsCrossed className="w-4 h-4" />
+                          <span>Menu & Recipes</span>
+                        </button>
+                      </DropdownMenu.Item>
+                    </DropdownMenu.Content>
+                  </DropdownMenu.Portal>
+                </DropdownMenu.Root>
+              </div>
+
             </div>
           </div>
         </div>
